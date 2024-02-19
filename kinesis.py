@@ -82,7 +82,7 @@ if(not os.path.exists(fname_init)):
     frame.particles.N = N_particles
     frame.particles.position = position[0:N_particles]
     frame.particles.typeid = [0] * N_particles
-    frame.configuration.box = [L, L, 1, 0, 0, 0]
+    frame.configuration.box = [L, L, 0, 0, 0, 0]
     frame.particles.types = ['A']
     frame.particles.orientation = rand_unit_quaternion(N_particles)
     with gsd.hoomd.open(name='init.gsd', mode='x') as f:
