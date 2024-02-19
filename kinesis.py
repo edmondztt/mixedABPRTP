@@ -60,7 +60,7 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.1
 DR = 0.5
-U0 = 5.0
+U0 = 0.1
 runtime = 100
 
 gsd_filename = 'test.gsd'
