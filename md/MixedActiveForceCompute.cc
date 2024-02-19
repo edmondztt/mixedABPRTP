@@ -88,7 +88,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     m_exec_conf->msg->notice(5) << "Destroying MixedActiveForceCompute" << std::endl;
     }
 
-void MixedActiveForceCompute::setActiveForce(const std::string& type_name, pybind11::tuple v)
+void MixedActiveForceCompute::setMixedActiveForce(const std::string& type_name, pybind11::tuple v)
     {
     unsigned int typ = this->m_pdata->getTypeByName(type_name);
 
@@ -132,7 +132,7 @@ void MixedActiveForceCompute::setActiveForce(const std::string& type_name, pybin
     h_f_activeVec.data[typ] = f_activeVec;
     }
 
-pybind11::tuple MixedActiveForceCompute::getActiveForce(const std::string& type_name)
+pybind11::tuple MixedActiveForceCompute::getMixedActiveForce(const std::string& type_name)
     {
     pybind11::list v;
     unsigned int typ = this->m_pdata->getTypeByName(type_name);
@@ -434,8 +434,8 @@ void export_MixedActiveForceCompute(pybind11::module& m)
         m,
         "MixedActiveForceCompute")
         .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>>())
-        .def("setActiveForce", &MixedActiveForceCompute::setActiveForce)
-        .def("getActiveForce", &MixedActiveForceCompute::getActiveForce)
+        .def("setMixedActiveForce", &MixedActiveForceCompute::setMixedActiveForce)
+        .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)
         .def("getActiveTorque", &MixedActiveForceCompute::getActiveTorque)
         .def_property_readonly("filter",

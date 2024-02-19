@@ -47,10 +47,10 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
         @param typ Particle type to set active force vector
         @param v The active force vector value to set (a 3-tuple)
     */
-    void setActiveForce(const std::string& type_name, pybind11::tuple v);
+    void setMixedActiveForce(const std::string& type_name, pybind11::tuple v);
 
     /// Gets active force vector for a given particle type
-    pybind11::tuple getActiveForce(const std::string& type_name);
+    pybind11::tuple getMixedActiveForce(const std::string& type_name);
 
     /** Sets active torque vector for a given particle type
         @param typ Particle type to set active torque vector
