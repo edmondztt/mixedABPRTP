@@ -59,7 +59,7 @@ def rand_unit_quaternion(N, threeD=False):
 
 dt = 1e-3
 sigma_tumble = 0.1
-DR = 0.5
+DR = 0.0
 U0 = 5.0
 runtime = 100
 
@@ -108,10 +108,11 @@ integrator.methods.append(overdamped_viscous)
 # )
 # integrator.methods.append(nvt)
 
-active = hoomd.md.force.Active(filter=hoomd.filter.All())
+
 # mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All())
 # mixed_active.mixed_active_force['A'] = (1,0,0)
 # mixed_active.active_torque['A'] = (0,0,0)
+active = hoomd.md.force.Active(filter=hoomd.filter.All())
 active.active_force['A'] = (1,0,0)
 active.active_torque['A'] = (0,0,0)
 # rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
@@ -123,6 +124,7 @@ simulation.operations += rotational_diffusion_updater
 
 # integrator.forces.append(mixed_active)
 integrator.forces.append(active)
+
 simulation.operations.integrator = integrator
 
 
