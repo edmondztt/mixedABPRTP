@@ -100,6 +100,9 @@ lj = hoomd.md.pair.LJ(nlist=cell)
 lj.params[('A', 'A')] = dict(epsilon=0, sigma=0.1)
 lj.r_cut[('A', 'A')] = 0.1
 integrator.forces.append(lj)
+overdamped_viscous = hoomd.md.methods.OverdampedViscous(
+    filter=hoomd.filter.All())
+integrator.methods.append(overdamped_viscous)
 # nvt = hoomd.md.methods.ConstantVolume(
 #     filter=hoomd.filter.All(), thermostat=hoomd.md.methods.thermostats.Bussi(kT=1.5)
 # )
