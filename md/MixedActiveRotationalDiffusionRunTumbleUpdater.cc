@@ -28,7 +28,7 @@ MixedActiveRotationalDiffusionRunTumbleUpdater::MixedActiveRotationalDiffusionRu
     // std::vector<Scalar> tumble_rate,
     std::shared_ptr<Variant> tumble_angle_gauss_spread,
     std::shared_ptr<MixedActiveForceCompute> mixed_active_force)
-    : Updater(sysdef, trigger), m_rotational_diffusion(rotational_diffusion) m_tumble_angle_gauss_spread(tumble_angle_gauss_spread), m_active_force(mixed_active_force)
+    : Updater(sysdef, trigger), m_rotational_diffusion(rotational_diffusion), m_tumble_angle_gauss_spread(tumble_angle_gauss_spread), m_active_force(mixed_active_force)
     {
     assert(m_pdata);
     assert(m_rotational_diffusion);
@@ -51,7 +51,7 @@ void MixedActiveRotationalDiffusionRunTumbleUpdater::update(uint64_t timestep)
     m_active_force->update_dynamical_parameters(); // first update the speed and tumble rate.
     uint64_t period = m_trigger.getPeriod();
     m_active_force->rotationalDiffusion(m_rotational_diffusion->operator()(timestep), timestep);
-    m_active_force->tumble(m_tumble_angle_spread->operator()(timestep), period, timestep);
+    m_active_force->tumble(m_tumble_angle_gauss_spread->operator()(timestep), period, timestep);
     }
 
 namespace detail
@@ -70,7 +70,7 @@ void export_MixedActiveRotationalDiffusionRunTumbleUpdater(pybind11::module& m)
                             std::shared_ptr<MixedActiveForceCompute>>())
         .def_property("rotational_diffusion",
                       &MixedActiveRotationalDiffusionRunTumbleUpdater::getRotationalDiffusion,
-                      &MixedActiveRotationalDiffusionRunTumbleUpdater::setRotationalDiffusion);
+                      &MixedActiveRotationalDiffusionRunTumbleUpdater::setRotationalDiffusion)
         .def_property("tumble_angle_gauss_spread",
                       &MixedActiveRotationalDiffusionRunTumbleUpdater::getTumbleAngleGaussSpread,
                       &MixedActiveRotationalDiffusionRunTumbleUpdater::setTumbleAngleGaussSpread);
