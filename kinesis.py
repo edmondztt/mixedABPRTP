@@ -58,7 +58,7 @@ def rand_unit_quaternion(N, threeD=False):
 
 
 dt = 1e-3
-sigma_tumble = 0.1
+sigma_tumble = 0.2*np.pi
 DR = 0.5
 U0 = 0.1
 runtime = 100
