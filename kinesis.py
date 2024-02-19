@@ -141,7 +141,7 @@ simulation.operations.writers.append(
     )
 )
 
-gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_000),
+gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
 
