@@ -409,7 +409,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
     {
         unsigned int idx = m_group->getMemberIndex(i);
-        h_tumble_rate.data[idx] = 1.0; // temporary space holder only!!! TODO: compute the real value according to the sensory input
+        h_tumble_rate.data[idx] = 0.1; // temporary space holder only!!! TODO: compute the real value according to the sensory input
     }
 }
 
