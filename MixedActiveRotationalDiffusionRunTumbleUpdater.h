@@ -43,7 +43,7 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
                                      std::shared_ptr<Variant> rotational_diffusion,
                                     //  std::vector<Scalar> tumble_rate,
                                      std::shared_ptr<Variant> tumble_angle_gauss_spread,
-                                     std::shared_ptr<MixedActiveForceCompute> active_force);
+                                     std::shared_ptr<MixedActiveForceCompute> mixed_active_force);
 
     /// Destructor
     virtual ~MixedActiveRotationalDiffusionRunTumbleUpdater();

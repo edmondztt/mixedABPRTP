@@ -27,7 +27,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
 
     : ForceCompute(sysdef), m_group(group)
     {
-    // allocate memory for the per-type active_force storage and initialize them to (1.0,0,0)
+    // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
 
     m_f_activeVec.swap(tmp_f_activeVec);
@@ -39,7 +39,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     for (unsigned int i = 0; i < m_f_activeVec.size(); i++)
         h_f_activeVec.data[i] = make_scalar4(1.0, 0.0, 0.0, 1.0);
 
-    // allocate memory for the per-type active_force storage and initialize them to (0,0,0)
+    // allocate memory for the per-type mixed_active_force storage and initialize them to (0,0,0)
     GlobalVector<Scalar4> tmp_t_activeVec(m_pdata->getNTypes(), m_exec_conf);
 
     m_t_activeVec.swap(tmp_t_activeVec);
@@ -72,6 +72,11 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
 
         cudaMemAdvise(m_t_activeVec.get(),
                       sizeof(Scalar4) * m_t_activeVec.getNumElements(),
+                      cudaMemAdviseSetReadMostly,
+                      0);
+
+        cudaMemAdvise(m_tumble_rate.get(),
+                      sizeof(Scalar) * m_tumble_rate.getNumElements(),
                       cudaMemAdviseSetReadMostly,
                       0);
         }

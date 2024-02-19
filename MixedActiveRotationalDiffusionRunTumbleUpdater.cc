@@ -27,8 +27,8 @@ MixedActiveRotationalDiffusionRunTumbleUpdater::MixedActiveRotationalDiffusionRu
     std::shared_ptr<Variant> rotational_diffusion,
     // std::vector<Scalar> tumble_rate,
     std::shared_ptr<Variant> tumble_angle_gauss_spread,
-    std::shared_ptr<MixedActiveForceCompute> active_force)
-    : Updater(sysdef, trigger), m_rotational_diffusion(rotational_diffusion), m_tumble_rate(tumble_rate), m_tumble_angle_gauss_spread(tumble_angle_gauss_spread), m_active_force(active_force)
+    std::shared_ptr<MixedActiveForceCompute> mixed_active_force)
+    : Updater(sysdef, trigger), m_rotational_diffusion(rotational_diffusion), m_tumble_rate(tumble_rate), m_tumble_angle_gauss_spread(tumble_angle_gauss_spread), m_active_force(mixed_active_force)
     {
     assert(m_pdata);
     assert(m_rotational_diffusion);
