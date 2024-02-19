@@ -1,6 +1,5 @@
 import hoomd
-import matplotlib
-import itertools
+# import matplotlib
 import math
 import gsd.hoomd
 import numpy as np
@@ -9,10 +8,9 @@ from random import uniform
 import datetime, time
 
 
-matplotlib.style.use('ggplot')
-import matplotlib_inline
-
-matplotlib_inline.backend_inline.set_matplotlib_formats('svg')
+# matplotlib.style.use('ggplot')
+# import matplotlib_inline
+# matplotlib_inline.backend_inline.set_matplotlib_formats('svg')
 
 class print_sim_state(hoomd.custom.Action):
     def act(self, timestep):
