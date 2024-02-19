@@ -70,26 +70,27 @@ cpu = hoomd.device.CPU()
 simulation = hoomd.Simulation(device=cpu, seed=1)
 
 if(not os.path.exists(gsd_filename)):
-    m = 4
-    N_particles = 4 * m**2
-    spacing = 1.3
-    K = math.ceil(N_particles ** (1 / 2))
-    L = K * spacing
-    x = np.linspace(-L / 2, L / 2, K, endpoint=False)
-    X, Y = np.meshgrid(x,x)
-    X = X.flatten()
-    Y = Y.flatten()
-    Z = np.zeros_like(X)
-    position = np.stack((X,Y,Z),axis=-1)
-    frame = gsd.hoomd.Frame()
-    frame.particles.N = N_particles
-    frame.particles.position = position[0:N_particles]
-    frame.particles.typeid = [0] * N_particles
-    frame.configuration.box = [L, L, 0, 0, 0, 0]
-    frame.particles.types = ['A']
-    frame.particles.orientation = rand_unit_quaternion(N_particles)
-    with gsd.hoomd.open(name=fname_init, mode='x') as f:
-        f.append(frame)
+    if(not os.path.exists(fname_init)):
+        m = 4
+        N_particles = 4 * m**2
+        spacing = 1.3
+        K = math.ceil(N_particles ** (1 / 2))
+        L = K * spacing
+        x = np.linspace(-L / 2, L / 2, K, endpoint=False)
+        X, Y = np.meshgrid(x,x)
+        X = X.flatten()
+        Y = Y.flatten()
+        Z = np.zeros_like(X)
+        position = np.stack((X,Y,Z),axis=-1)
+        frame = gsd.hoomd.Frame()
+        frame.particles.N = N_particles
+        frame.particles.position = position[0:N_particles]
+        frame.particles.typeid = [0] * N_particles
+        frame.configuration.box = [L, L, 0, 0, 0, 0]
+        frame.particles.types = ['A']
+        frame.particles.orientation = rand_unit_quaternion(N_particles)
+        with gsd.hoomd.open(name=fname_init, mode='x') as f:
+            f.append(frame)
     simulation.create_state_from_gsd(
         filename=fname_init
     )
