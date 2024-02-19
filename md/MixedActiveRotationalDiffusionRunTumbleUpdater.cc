@@ -49,7 +49,8 @@ MixedActiveRotationalDiffusionRunTumbleUpdater::~MixedActiveRotationalDiffusionR
 void MixedActiveRotationalDiffusionRunTumbleUpdater::update(uint64_t timestep)
     {
     m_active_force->update_dynamical_parameters(); // first update the speed and tumble rate.
-    uint64_t period = m_trigger.getPeriod();
+    std::shared_ptr<PeriodicTrigger> trigger = getPeriodicTrigger();
+    uint64_t period = trigger.getPeriod();
     m_active_force->rotationalDiffusion(m_rotational_diffusion->operator()(timestep), timestep);
     m_active_force->tumble(m_tumble_angle_gauss_spread->operator()(timestep), period, timestep);
     }
