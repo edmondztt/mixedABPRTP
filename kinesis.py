@@ -66,7 +66,10 @@ runtime = 100
 gsd_filename = 'test.gsd'
 fname_init = 'init.gsd'
 
-if(not os.path.exists(fname_init)):
+cpu = hoomd.device.CPU()
+simulation = hoomd.Simulation(device=cpu, seed=1)
+
+if(not os.path.exists(gsd_filename)):
     m = 4
     N_particles = 4 * m**2
     spacing = 1.3
@@ -85,14 +88,15 @@ if(not os.path.exists(fname_init)):
     frame.configuration.box = [L, L, 0, 0, 0, 0]
     frame.particles.types = ['A']
     frame.particles.orientation = rand_unit_quaternion(N_particles)
-    with gsd.hoomd.open(name='init.gsd', mode='x') as f:
+    with gsd.hoomd.open(name=fname_init, mode='x') as f:
         f.append(frame)
-
-cpu = hoomd.device.CPU()
-simulation = hoomd.Simulation(device=cpu, seed=1)
-simulation.create_state_from_gsd(
-    filename='init.gsd'
-)
+    simulation.create_state_from_gsd(
+        filename=fname_init
+    )
+else:
+    simulation.create_state_from_gsd(
+        filename=gsd_filename
+    )
 
 integrator = hoomd.md.Integrator(dt=dt)
 cell = hoomd.md.nlist.Cell(buffer=0.4)

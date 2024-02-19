@@ -268,6 +268,7 @@ void MixedActiveForceCompute::rotationalDiffusion(Scalar rotational_diffusion, u
     assert(h_tag.data != NULL);
 
     const auto rotation_constant = slow::sqrt(2.0 * rotational_diffusion * m_deltaT);
+    std::cout << "now in rotational diffusion: rotation_constant = " << rotation_constant << std::endl;
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
         {
         unsigned int idx = m_group->getMemberIndex(i);
