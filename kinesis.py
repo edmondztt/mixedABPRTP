@@ -94,7 +94,7 @@ simulation.create_state_from_gsd(
     filename='init.gsd'
 )
 
-integrator = hoomd.md.Integrator(dt=0.005)
+integrator = hoomd.md.Integrator(dt=dt)
 cell = hoomd.md.nlist.Cell(buffer=0.4)
 lj = hoomd.md.pair.LJ(nlist=cell)
 lj.params[('A', 'A')] = dict(epsilon=0, sigma=0.1)
@@ -109,8 +109,8 @@ integrator.methods.append(overdamped_viscous)
 # integrator.methods.append(nvt)
 
 mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All())
-mixed_active.mixed_active_force['A','A'] = (1,0,0)
-mixed_active.active_torque['A','A'] = (0,0,0)
+mixed_active.mixed_active_force['A'] = (1,0,0)
+mixed_active.active_torque['A'] = (0,0,0)
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
     trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble)
 simulation.operations += rotational_diffusion_tumble_updater
