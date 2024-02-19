@@ -72,7 +72,7 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
         m_tumble_angle_gauss_spread = new_tumble_angle_gauss_spread;
         }
 
-    std::shared_ptr<PeriodicTrigger>& getPeriodicTrigger() const {
+    std::shared_ptr<PeriodicTrigger> getPeriodicTrigger() const {
         return std::static_pointer_cast<PeriodicTrigger>(m_trigger);
     };
 
