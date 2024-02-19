@@ -81,7 +81,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     //! tumble
     virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
     //! whether should tumble now
-    bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
+    bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
 
 
     std::shared_ptr<ParticleGroup> m_group; //!< Group of particles on which this force is applied
