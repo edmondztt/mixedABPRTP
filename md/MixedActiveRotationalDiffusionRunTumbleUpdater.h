@@ -39,7 +39,7 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
     public:
     /// Constructor
     MixedActiveRotationalDiffusionRunTumbleUpdater(std::shared_ptr<SystemDefinition> sysdef,
-                                     std::shared_ptr<Trigger> trigger,
+                                     std::shared_ptr<PeriodicTrigger> trigger,
                                      std::shared_ptr<Variant> rotational_diffusion,
                                     //  std::vector<Scalar> tumble_rate,
                                      std::shared_ptr<Variant> tumble_angle_gauss_spread,
