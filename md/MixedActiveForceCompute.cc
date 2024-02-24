@@ -63,7 +63,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     for (unsigned int i = 0; i < m_tumble_rate.size(); i++)
         h_tumble_rate.data[i] = 0.0;
     // U0 initialize
-    GlobalVector<Scalar> tmp_UO(max_num_particles, m_exec_conf);
+    GlobalVector<Scalar> tmp_U0(max_num_particles, m_exec_conf);
     m_U0.swap(tmp_U0);
     TAG_ALLOCATION(m_U0);
     ArrayHandle<Scalar> h_U0(m_U0,
@@ -251,7 +251,7 @@ void MixedActiveForceCompute::setConfParams(const std::string& type_name, pybind
         throw std::invalid_argument("Type does not exist");
         }
 
-    Scalar kT1, kT2, kH1, kH2, kS1, kS2, Q0, Q1, nosie_Q, U0, U1, gamma0, c0_PHD;
+    Scalar kT1, kT2, kH1, kH2, kS1, kS2, Q0, Q1, noise_Q, U0, U1, gamma0, c0_PHD;
     kT1 = pybind11::cast<Scalar>(v[0]);
     kT2 = pybind11::cast<Scalar>(v[1]);
     kH1 = pybind11::cast<Scalar>(v[2]);
@@ -263,8 +263,8 @@ void MixedActiveForceCompute::setConfParams(const std::string& type_name, pybind
     noise_Q = pybind11::cast<Scalar>(v[8]);
     U0 = pybind11::cast<Scalar>(v[9]);
     U1 = pybind11::cast<Scalar>(v[10]);
-    gamma0 = pybind11:cast<Scalar>(v[11]);
-    c0_PHD = pybind11:cast<Scalar>(v[12]);
+    gamma0 = pybind11::cast<Scalar>(v[11]);
+    c0_PHD = pybind11::cast<Scalar>(v[12]);
 
     ArrayHandle<Scalar> h_kT1(m_kT1,
                         access_location::host,
@@ -290,14 +290,14 @@ void MixedActiveForceCompute::setConfParams(const std::string& type_name, pybind
                         access_location::host,
                         access_mode::readwrite);
     h_kS2.data[typ] = kS2;
-    ArrayHandle<Scalar> h_kQ0(m_kQ0,
+    ArrayHandle<Scalar> h_Q0(m_Q0,
                         access_location::host,
                         access_mode::readwrite);
-    h_kQ0.data[typ] = kQ0;
-    ArrayHandle<Scalar> h_kQ1(m_kQ1,
+    h_Q0.data[typ] = Q0;
+    ArrayHandle<Scalar> h_Q1(m_Q1,
                         access_location::host,
                         access_mode::readwrite);
-    h_kQ1.data[typ] = kQ1;
+    h_Q1.data[typ] = Q1;
     ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::readwrite);
     h_noise_Q.data[typ] = noise_Q;
     ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::readwrite);
@@ -326,10 +326,10 @@ pybind11::tuple MixedActiveForceCompute::getConfParams(const std::string& type_n
     Scalar kS1 = h_kS1.data[typ];
     ArrayHandle<Scalar> h_kS2(m_kS2, access_location::host, access_mode::read);
     Scalar kS2 = h_kS2.data[typ];
-    ArrayHandle<Scalar> h_kQ0(m_kQ0, access_location::host, access_mode::read);
-    Scalar kQ0 = h_kQ0.data[typ];
-    ArrayHandle<Scalar> h_kQ1(m_Q1, access_location::host, access_mode::read);
-    Scalar kQ1 = h_Q1.data[typ];
+    ArrayHandle<Scalar> h_Q0(m_Q0, access_location::host, access_mode::read);
+    Scalar Q0 = h_Q0.data[typ];
+    ArrayHandle<Scalar> h_Q1(m_Q1, access_location::host, access_mode::read);
+    Scalar Q1 = h_Q1.data[typ];
     ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::read);
     Scalar noise_Q = h_noise_Q.data[typ];
     ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
@@ -364,6 +364,7 @@ pybind11::tuple MixedActiveForceCompute::getConfParams(const std::string& type_n
 void MixedActiveForceCompute::setForces()
     {
     //  array handles
+    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_f_actVec(m_f_activeVec, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_t_actVec(m_t_activeVec, access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
@@ -656,6 +657,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
     {
         unsigned int idx = m_group->getMemberIndex(i);
+        unsigned int typ = __scalar_as_int(h_pos.data[idx].w);
         S = h_S.data[idx];
         if(S>=1){
             continue;

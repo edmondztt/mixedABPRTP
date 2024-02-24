@@ -87,10 +87,10 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters();
 
-    void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q);
-    void update_S(Scalar &S, Scalar gamma);
-    void update_U(Scalar &U, Scalar Q);
-    void update_tumble_rate(Scalar &gamma, Scalar Q);
+    void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q, unsigned int typ);
+    void update_S(Scalar &S, Scalar gamma, unsigned int typ);
+    void update_U(Scalar &U, Scalar Q, unsigned int typ);
+    void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos);
 
     std::shared_ptr<ParticleGroup> m_group; //!< Group of particles on which this force is applied
