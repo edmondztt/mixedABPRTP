@@ -490,6 +490,7 @@ void MixedActiveForceCompute::rotationalDiffusion(Scalar rotational_diffusion, u
 void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep)
     {
     //  array handles
+    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
@@ -562,7 +563,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
     Scalar k1, k2, c_term;
     switch (FLAG_Q)
     {
-    case FLAG_QH:
+    case m_FLAG_QH:
         ArrayHandle<Scalar> h_kH1(m_kH1,
                             access_location::host,
                             access_mode::readwrite);
@@ -574,7 +575,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
         c_term = (c_new - c_old)/dt;
         c_term = (c_term>0) ? k2*c_term : 0;
         break;
-    case FLAG_QT:
+    case m_FLAG_QT:
         ArrayHandle<Scalar> h_kT1(m_kT1,
                             access_location::host,
                             access_mode::readwrite);
@@ -583,7 +584,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
                             access_mode::readwrite);
         k1 = h_kT1.data[typ];
         k2 = h_kT2.data[typ];
-        c_term = (c_new - m_c0_PHD);
+        c_term = (c_new - m_c0_PHD.data[typ]);
         c_term = (c_term>0) ? k2 : 0;
         break;
     default:

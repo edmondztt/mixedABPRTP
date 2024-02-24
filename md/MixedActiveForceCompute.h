@@ -126,8 +126,8 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     Scalar m_dt;
 
     private:
-    int FLAG_QH = 1; // for QH
-    int FLAG_QT = 2; // for QT
+    int m_FLAG_QH = 1; // for QH
+    int m_FLAG_QT = 2; // for QT
     // Allow MixedActiveRotationalDiffusionRunTumbleUpdater to access internal methods and members of
     // MixedActiveForceCompute classes/subclasses. This is necessary to allow
     // MixedActiveRotationalDiffusionRunTumbleUpdater to call rotationalDiffusion.
