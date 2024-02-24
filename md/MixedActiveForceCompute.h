@@ -83,6 +83,11 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
 
+    void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q);
+    void update_S(Scalar &S, Scalar gamma);
+    void update_U(Scalar &U, Scalar Q);
+    void update_tumble_rate(Scalar &gamma, Scalar Q);
+    Scalar compute_c_new(Scalar4 pos);
 
     std::shared_ptr<ParticleGroup> m_group; //!< Group of particles on which this force is applied
     GlobalVector<Scalar4>
@@ -91,10 +96,32 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     GlobalVector<Scalar4>
         m_t_activeVec; //! active torque unit vectors and magnitudes for each particle type
 
-    GlobalVector<Scalar>
-        m_tumble_rate; //! tumble rate for each particle
+    // by each particle
+    GlobalVector<Scalar> m_tumble_rate; //! tumble rate for each particle
+    GlobalVector<Scalar> m_U;
+    GlobalVector<Scalar> m_QH;
+    GlobalVector<Scalar> m_QT;
+    GlobalVector<Scalar> m_S;
+    GlobalVector<Scalar> m_c; // c_old
+
+    // by type:
+    GlobalVector<Scalar> m_kT1;
+    GlobalVector<Scalar> m_kT2;
+    GlobalVector<Scalar> m_kH1;
+    GlobalVector<Scalar> m_kH2;
+    GlobalVector<Scalar> m_kS1;
+    GlobalVector<Scalar> m_kS2;
+    GlobalVector<Scalar> m_Q0; // lower threshold for gamma
+    GlobalVector<Scalar> m_Q1; // upper threshold for U
+    GlobalVector<Scalar> m_noise_Q;
+    GlobalVector<Scalar> m_U0;
+    GlobalVector<Scalar> m_U1;
+    GlobalVector<Scalar> m_gamma0;
+    GlobalVector<Scalar> m_c0_PHD;
 
     private:
+    int FLAG_QH = 1; // for QH
+    int FLAG_QT = 2; // for QT
     // Allow MixedActiveRotationalDiffusionRunTumbleUpdater to access internal methods and members of
     // MixedActiveForceCompute classes/subclasses. This is necessary to allow
     // MixedActiveRotationalDiffusionRunTumbleUpdater to call rotationalDiffusion.

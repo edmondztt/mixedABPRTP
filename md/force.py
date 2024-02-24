@@ -634,8 +634,74 @@ class MixedActive(Force):
             type_kind="particle_types",
             param_dict=TypeParameterDict((0.0, 0.0, 0.0), len_keys=1),
         )
+        kH1 = TypeParameter(
+            "kH1",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        kH2 = TypeParameter(
+            "kH2",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        kT1 = TypeParameter(
+            "kT1",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        kT2 = TypeParameter(
+            "kT2",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        kS1 = TypeParameter(
+            "kS1",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        kS2 = TypeParameter(
+            "kS2",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        Q0 = TypeParameter(
+            "Q0",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.3, len_keys=1),
+        )
+        Q1 = TypeParameter(
+            "Q1",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.7, len_keys=1),
+        )
+        U0 = TypeParameter(
+            "U0",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(20, len_keys=1),
+        )
+        U1 = TypeParameter(
+            "U1",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(10, len_keys=1),
+        )
+        gamma0 = TypeParameter(
+            "gamma0",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.1, len_keys=1),
+        )
+        c0_PHD = TypeParameter(
+            "c0_PHD",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.2e-5, len_keys=1),
+        )
+        noise_Q = TypeParameter(
+            "noise_Q",
+            type_kind="particle_types",
+            param_dict=TypeParameterDict(0.05, len_keys=1),
+        )
 
-        self._extend_typeparam([mixed_active_force, active_torque])
+        self._extend_typeparam([mixed_active_force, active_torque,
+            kH1, kH2, kT1, kT2, kS1, kS2, Q0, Q1, U0, U1, gamma0, c0_PHD, noise_Q])
 
     def _attach_hook(self):
         # Active forces use RNGs. Warn the user if they did not set the seed.
@@ -657,18 +723,5 @@ class MixedActive(Force):
                                  sim.state._get_group(self.filter))
 
     def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread):
-        """Create a rotational diffusion updater for this active force.
-
-        Args:
-            trigger (hoomd.trigger.trigger_like): Select the timesteps to update
-                rotational diffusion.
-            rotational_diffusion (hoomd.variant.variant_like): The
-                rotational diffusion as a function of time or a constant.
-            tumble_angle_gauss_spread (hoomd.variant.variant_like): The tumble  
-                angle gauss spread as a function of time.
-        Returns:
-            hoomd.md.update.MixedActiveRotationalDiffusionRunTumble:
-                The rotational diffusion & tumble updater.
-        """
         return hoomd.md.update.MixedActiveRotationalDiffusionRunTumble(
             trigger, self, rotational_diffusion, tumble_angle_gauss_spread)

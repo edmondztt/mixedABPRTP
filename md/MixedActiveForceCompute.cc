@@ -29,9 +29,8 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     {
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
-
     m_f_activeVec.swap(tmp_f_activeVec);
-    TAG_ALLOCATION(m_f_activeVec);
+    TAG_ALLOCATION(m_f_activeVec);    
 
     ArrayHandle<Scalar4> h_f_activeVec(m_f_activeVec,
                                        access_location::host,
@@ -53,6 +52,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
 
     // allocate memory for the per-type tumble rate and initialize to 0.0
     unsigned int max_num_particles = m_pdata->getMaxN();
+    // tumble rate initialize
     GlobalVector<Scalar> tmp_tumble_rate(max_num_particles, m_exec_conf);
     m_tumble_rate.swap(tmp_tumble_rate);
     TAG_ALLOCATION(m_tumble_rate);
@@ -61,6 +61,42 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                                        access_mode::overwrite);
     for (unsigned int i = 0; i < m_tumble_rate.size(); i++)
         h_tumble_rate.data[i] = 0.0;
+    // U0 initialize
+    GlobalVector<Scalar> tmp_UO(max_num_particles, m_exec_conf);
+    m_U0.swap(tmp_U0);
+    TAG_ALLOCATION(m_U0);
+    ArrayHandle<Scalar> h_U0(m_U0,
+                            access_location::host,
+                            access_mode::overwrite);
+    for (unsigned int i = 0; i < m_U0.size(); i++)
+        h_U0.data[i] = 0.0;
+    // QH initialize
+    GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
+    m_QH.swap(tmp_QH);
+    TAG_ALLOCATION(m_QH);
+    ArrayHandle<Scalar> h_QH(m_QH,
+                            access_location::host,
+                            access_mode::overwrite);
+    for (unsigned int i = 0; i < m_QH.size(); i++)
+        h_QH.data[i] = 0.0;
+    // QT initialize
+    GlobalVector<Scalar> tmp_QT(max_num_particles, m_exec_conf);
+    m_QT.swap(tmp_QT);
+    TAG_ALLOCATION(m_QT);
+    ArrayHandle<Scalar> h_QT(m_QT,
+                            access_location::host,
+                            access_mode::overwrite);
+    for (unsigned int i = 0; i < m_QT.size(); i++)
+        h_QT.data[i] = 0.0;
+    // S initialize
+    GlobalVector<Scalar> tmp_S(max_num_particles, m_exec_conf);
+    m_S.swap(tmp_S);
+    TAG_ALLOCATION(m_S);
+    ArrayHandle<Scalar> h_S(m_S,
+                            access_location::host,
+                            access_mode::overwrite);
+    for (unsigned int i = 0; i < m_S.size(); i++)
+        h_S.data[i] = 0.0;
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
     if (m_exec_conf->isCUDAEnabled() && m_exec_conf->allConcurrentManagedAccess())
@@ -203,6 +239,125 @@ pybind11::tuple MixedActiveForceCompute::getActiveTorque(const std::string& type
     return pybind11::tuple(v);
     }
 
+// set and get for confidence dynamics params
+void MixedActiveForceCompute::setConfParams(const std::string& type_name, pybind11::tuple v)
+{
+    unsigned int typ = this->m_pdata->getTypeByName(type_name);
+
+    // check for user errors
+    if (typ >= m_pdata->getNTypes())
+        {
+        throw std::invalid_argument("Type does not exist");
+        }
+
+    Scalar kT1, kT2, kH1, kH2, kS1, kS2, Q0, Q1, nosie_Q, U0, U1, gamma0, c0_PHD;
+    kT1 = pybind11::cast<Scalar>(v[0]);
+    kT2 = pybind11::cast<Scalar>(v[1]);
+    kH1 = pybind11::cast<Scalar>(v[2]);
+    kH2 = pybind11::cast<Scalar>(v[3]);
+    kS1 = pybind11::cast<Scalar>(v[4]);
+    kS2 = pybind11::cast<Scalar>(v[5]);
+    Q0 = pybind11::cast<Scalar>(v[6]);
+    Q1 = pybind11::cast<Scalar>(v[7]);
+    noise_Q = pybind11::cast<Scalar>(v[8]);
+    U0 = pybind11::cast<Scalar>(v[9]);
+    U1 = pybind11::cast<Scalar>(v[10]);
+    gamma0 = pybind11:cast<Scalar>(v[11]);
+    c0_PHD = pybind11:cast<Scalar>(v[12]);
+
+    ArrayHandle<Scalar> h_kT1(m_kT1,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kT1.data[typ] = kT1;
+    ArrayHandle<Scalar> h_kT2(m_kT2,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kT2.data[typ] = kT2;
+    ArrayHandle<Scalar> h_kH1(m_kH1,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kH1.data[typ] = kH1;
+    ArrayHandle<Scalar> h_kH2(m_kH2,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kH2.data[typ] = kH2;
+    ArrayHandle<Scalar> h_kS1(m_kS1,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kS1.data[typ] = kS1;
+    ArrayHandle<Scalar> h_kS2(m_kS2,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kS2.data[typ] = kS2;
+    ArrayHandle<Scalar> h_kQ0(m_kQ0,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kQ0.data[typ] = kQ0;
+    ArrayHandle<Scalar> h_kQ1(m_kQ1,
+                        access_location::host,
+                        access_mode::readwrite);
+    h_kQ1.data[typ] = kQ1;
+    ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::readwrite);
+    h_noise_Q.data[typ] = noise_Q;
+    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::readwrite);
+    h_U0.data[typ] = U0;
+    ArrayHandle<Scalar> h_U1(m_U1, access_location::host, access_mode::readwrite);
+    h_U1.data[typ] = U1;
+    ArrayHandle<Scalar> h_gamma0(m_gamma0, access_location::host, access_mode::readwrite);
+    h_gamma0.data[typ] = gamma0;
+    ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD, access_location::host, access_mode::readwrite);
+    h_c0_PHD.data[typ] = c0_PHD;
+}
+
+pybind11::tuple MixedActiveForceCompute::getConfParams(const std::string& type_name)
+    {
+    pybind11::list v;
+    unsigned int typ = this->m_pdata->getTypeByName(type_name);
+    ArrayHandle<Scalar> h_kT1(m_kT1, access_location::host, access_mode::read);
+    Scalar kT1 = h_kT1.data[typ];
+    ArrayHandle<Scalar> h_kT2(m_kT2, access_location::host, access_mode::read);
+    Scalar kT2 = h_kT2.data[typ];
+    ArrayHandle<Scalar> h_kH1(m_kH1, access_location::host, access_mode::read);
+    Scalar kH1 = h_kH1.data[typ];
+    ArrayHandle<Scalar> h_kH2(m_kH2, access_location::host, access_mode::read);
+    Scalar kH2 = h_kH2.data[typ];
+    ArrayHandle<Scalar> h_kS1(m_kS1, access_location::host, access_mode::read);
+    Scalar kS1 = h_kS1.data[typ];
+    ArrayHandle<Scalar> h_kS2(m_kS2, access_location::host, access_mode::read);
+    Scalar kS2 = h_kS2.data[typ];
+    ArrayHandle<Scalar> h_kQ0(m_kQ0, access_location::host, access_mode::read);
+    Scalar kQ0 = h_kQ0.data[typ];
+    ArrayHandle<Scalar> h_kQ1(m_Q1, access_location::host, access_mode::read);
+    Scalar kQ1 = h_Q1.data[typ];
+    ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::read);
+    Scalar noise_Q = h_noise_Q.data[typ];
+    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
+    Scalar U0 = h_U0.data[typ];
+    ArrayHandle<Scalar> h_U1(m_U1, access_location::host, access_mode::read);
+    Scalar U1 = h_U1.data[typ];
+    ArrayHandle<Scalar> h_gamma0(m_gamma0, access_location::host, access_mode::read);
+    Scalar gamma0 = h_gamma0.data[typ];
+    ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD, access_location::host, access_mode::read);
+    Scalar c0_PHD = h_c0_PHD.data[typ];
+    
+    v.append(kT1);
+    v.append(kT2);
+    v.append(kH1);
+    v.append(kH2);
+    v.append(kS1);
+    v.append(kS2);
+    v.append(Q0);
+    v.append(Q1);
+    v.append(noise_Q);
+    v.append(U0);
+    v.append(U1);
+    v.append(gamma0);
+    v.append(c0_PHD);
+    return pybind11::tuple(v);
+    }
+
+
+
 /*! This function sets appropriate active forces on all active particles.
  */
 void MixedActiveForceCompute::setForces()
@@ -210,9 +365,10 @@ void MixedActiveForceCompute::setForces()
     //  array handles
     ArrayHandle<Scalar4> h_f_actVec(m_f_activeVec, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_t_actVec(m_t_activeVec, access_location::host, access_mode::read);
+    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
+    // 
     ArrayHandle<Scalar4> h_force(m_force, access_location::host, access_mode::overwrite);
     ArrayHandle<Scalar4> h_torque(m_torque, access_location::host, access_mode::overwrite);
-    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::read);
@@ -220,8 +376,8 @@ void MixedActiveForceCompute::setForces()
     // sanity check
     assert(h_f_actVec.data != NULL);
     assert(h_t_actVec.data != NULL);
+    assert(h_U0.data != NULL);
     assert(h_orientation.data != NULL);
-    assert(h_pos.data != NULL);
 
     // zero forces so we don't leave any forces set for indices that are no longer part of our group
     memset(h_force.data, 0, sizeof(Scalar4) * m_force.getNumElements());
@@ -232,12 +388,13 @@ void MixedActiveForceCompute::setForces()
         unsigned int idx = m_group->getMemberIndex(i);
         unsigned int type = __scalar_as_int(h_pos.data[idx].w);
 
+        Scalar U0 = h_U0.data[idx];
         vec3<Scalar> f(h_f_actVec.data[type].w * h_f_actVec.data[type].x,
                        h_f_actVec.data[type].w * h_f_actVec.data[type].y,
                        h_f_actVec.data[type].w * h_f_actVec.data[type].z);
         quat<Scalar> quati(h_orientation.data[idx]);
         vec3<Scalar> fi = rotate(quati, f);
-        h_force.data[idx] = vec_to_scalar4(fi, 0);
+        h_force.data[idx] = vec_to_scalar4(U0 * fi, 0);
 
         vec3<Scalar> t(h_t_actVec.data[type].w * h_t_actVec.data[type].x,
                        h_t_actVec.data[type].w * h_t_actVec.data[type].y,
@@ -332,14 +489,12 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
     {
     //  array handles
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
-    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
 
     assert(h_tumble_rate.data != NULL);
-    assert(h_pos.data != NULL);
     assert(h_orientation.data != NULL);
     assert(h_tag.data != NULL);
 
@@ -400,25 +555,97 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
     return timeForNextEvent <= time_elapse;
 }
 
+/********** begin aux methods for internal confidence calculations  ***********/
+void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q){
+    Scalar k1, k2, c_term;
+    switch (FLAG_Q)
+    {
+    case FLAG_QH:
+        k1 = m_QH1;
+        k2 = m_QH2;
+        c_term = (c_new - c_old)/dt;
+        c_term = (c_term>0) ? k2*c_term : 0;
+        break;
+    case FLAG_QT:
+        k1 = m_QT1;
+        k2 = m_QT2;
+        c_term = (c_new - m_c0_PHD);
+        c_term = (c_term>0) ? k2 : 0;
+        break;
+    default:
+        break;
+    } 
+    Q += dt * ((-k1) * Q + c_term);
+    return;
+}
+
+void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma){
+    S += dt*((-m_kS1) * S + m_kS2*gamma);
+}
+
+void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q){
+    U = m_U0 + m_U1 * tanh(Q-m_Q1);
+}
+
+void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q){
+    gamma = m_gamma0 * (1 - tanh(Q-m_Q0));
+}
+
+Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos){
+    return 0;
+}
+/************ end aux methods for internal confidence calculations ************/
+
+
 void MixedActiveForceCompute::update_dynamical_parameters(){
     //  update the swim speed by rescaling f_actVec;
     //  update the tumble rate;
     //  array handles
-    ArrayHandle<Scalar4> h_f_actVec(m_f_activeVec, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_QH(m_QH, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_QT(m_QT, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_S(m_S, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_c(m_c, access_location::host, access_mode::readwrite);
+    
+    Scalar QH, QT, S, U, gamma, c_old, c_new; // c store the gradient in [0,1,2], absolute c in [3]
+
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
     {
         unsigned int idx = m_group->getMemberIndex(i);
-        h_tumble_rate.data[idx] = 0.1; // temporary space holder only!!! TODO: compute the real value according to the sensory input
+        S = h_S.data[idx];
+        if(S>=1){
+            continue;
+        }
+        QH = h_QH.data[idx];
+        QT = h_QT.data[idx];
+        U = h_U.data[idx];
+        c_old = h_c.data[idx];
+        gamma = h_tumble_rate.data[idx];
+        Scalar4 pos = h_pos.data[idx];
+        c_new = compute_c_new(pos); 
+        // now evolve the dynamics
+        update_Q(QH, c_old, c_new, dt, FLAG_QH);
+        update_Q(QT, c_old, c_new, dt, FLAG_QT);
+        update_tumble_rate(gamma, QH+QT);
+        update_S(S, gamma);
+        update_U(U, QH + QT);
+        // now update the device values
+        h_c.data[idx] = c_new;
+        h_QH.data[idx] = QH;
+        h_QT.data[idx] = QT;
+        h_S.data[idx] = S;
+        h_U.data[idx] = U;
+        h_tumble_rate.data[idx] = gamma;
     }
 }
 
 /*! This function applies rotational diffusion and sets forces for all active particles
     \param timestep Current timestep
 */
-void MixedActiveForceCompute::computeForces(uint64_t timestep)
-    {
+void MixedActiveForceCompute::computeForces(uint64_t timestep){
+    update_dynamical_parameters();
     setForces(); // set forces for particles
 
 #ifdef ENABLE_HIP
@@ -439,6 +666,8 @@ void export_MixedActiveForceCompute(pybind11::module& m)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)
         .def("getActiveTorque", &MixedActiveForceCompute::getActiveTorque)
+        .def("setConfParams", &MixedActiveForceCompute::setConfParams)
+        .def("getConfParams", &MixedActiveForceCompute::getConfParams)
         .def_property_readonly("filter",
                                [](MixedActiveForceCompute& force)
                                { return force.getGroup()->getFilter(); });
