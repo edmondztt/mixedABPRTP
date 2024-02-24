@@ -557,19 +557,31 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
 }
 
 /********** begin aux methods for internal confidence calculations  ***********/
-void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q){
+void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
     switch (FLAG_Q)
     {
     case FLAG_QH:
-        k1 = m_QH1;
-        k2 = m_QH2;
+        ArrayHandle<Scalar> h_kH1(m_kH1,
+                            access_location::host,
+                            access_mode::readwrite);
+        ArrayHandle<Scalar> h_kH2(m_kH2,
+                            access_location::host,
+                            access_mode::readwrite);
+        k1 = h_kH1.data[typ];
+        k2 = h_kH2.data[typ];
         c_term = (c_new - c_old)/dt;
         c_term = (c_term>0) ? k2*c_term : 0;
         break;
     case FLAG_QT:
-        k1 = m_QT1;
-        k2 = m_QT2;
+        ArrayHandle<Scalar> h_kT1(m_kT1,
+                            access_location::host,
+                            access_mode::readwrite);
+        ArrayHandle<Scalar> h_kT2(m_kT2,
+                            access_location::host,
+                            access_mode::readwrite);
+        k1 = h_kT1.data[typ];
+        k2 = h_kT2.data[typ];
         c_term = (c_new - m_c0_PHD);
         c_term = (c_term>0) ? k2 : 0;
         break;
@@ -580,16 +592,45 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
     return;
 }
 
-void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma){
-    S += dt*((-m_kS1) * S + m_kS2*gamma);
+void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ){
+    ArrayHandle<Scalar> h_kS1(m_kS1,
+                        access_location::host,
+                        access_mode::readwrite);
+    ArrayHandle<Scalar> h_kS2(m_kS2,
+                        access_location::host,
+                        access_mode::readwrite);
+    k1 = h_kS1.data[typ];
+    k2 = h_kS2.data[typ];
+    S += dt*((-k1) * S + k2*gamma);
 }
 
-void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q){
-    U = m_U0 + m_U1 * tanh(Q-m_Q1);
+void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
+    ArrayHandle<Scalar> h_U0(m_U0,
+                        access_location::host,
+                        access_mode::readwrite);
+    ArrayHandle<Scalar> h_U1(m_U1,
+                        access_location::host,
+                        access_mode::readwrite);
+    ArrayHandle<Scalar> h_Q1(m_Q1,
+                        access_location::host,
+                        access_mode::readwrite);
+    Scalar U0, U1, Q1;
+    U0 = h_U0.data[typ];
+    U1 = h_U1.data[typ];
+    Q1 = h_Q1.data[typ];
+    U = U0 + U1 * tanh(Q-Q1);
 }
 
-void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q){
-    gamma = m_gamma0 * (1 - tanh(Q-m_Q0));
+void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
+    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate,
+                        access_location::host,
+                        access_mode::readwrite);
+    ArrayHandle<Scalar> h_Q0(m_Q0,
+                        access_location::host,
+                        access_mode::readwrite);
+    gamma0 = h_tumble_rate.data[typ];
+    Q0 = h_Q0.data[typ];
+    gamma = gamma0 * (1 - tanh(Q-Q0));
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos){
@@ -625,13 +666,13 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
         c_old = h_c.data[idx];
         gamma = h_tumble_rate.data[idx];
         Scalar4 pos = h_pos.data[idx];
-        c_new = compute_c_new(pos); 
+        c_new = compute_c_new(pos);
         // now evolve the dynamics
-        update_Q(QH, c_old, c_new, m_dt, FLAG_QH);
-        update_Q(QT, c_old, c_new, m_dt, FLAG_QT);
-        update_tumble_rate(gamma, QH+QT);
-        update_S(S, gamma);
-        update_U(U, QH + QT);
+        update_Q(QH, c_old, c_new, m_dt, FLAG_QH, typ);
+        update_Q(QT, c_old, c_new, m_dt, FLAG_QT, typ);
+        update_tumble_rate(gamma, QH+QT, typ);
+        update_S(S, gamma, typ);
+        update_U(U, QH + QT, typ);
         // now update the device values
         h_c.data[idx] = c_new;
         h_QH.data[idx] = QH;
