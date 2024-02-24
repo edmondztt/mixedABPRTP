@@ -573,7 +573,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
         k1 = h_kH1.data[typ];
         k2 = h_kH2.data[typ];
         c_term = (c_new - c_old)/dt;
-        c_term = (c_term>0) ? k2*c_term : 0;
+        c_term = (c_term>0) ? c_term : 0;
         break;
     case m_FLAG_QT:
         ArrayHandle<Scalar> h_kT1(m_kT1,
@@ -585,12 +585,13 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
         k1 = h_kT1.data[typ];
         k2 = h_kT2.data[typ];
         c_term = (c_new - m_c0_PHD.data[typ]);
-        c_term = (c_term>0) ? k2 : 0;
+        c_term = (c_term>0) ? 1 : 0;
         break;
     default:
-        break;
+        printf("FLAG_Q must be either for QH or QT!\n");
+        return;
     } 
-    Q += dt * ((-k1) * Q + c_term);
+    Q += dt * ((-k1) * Q + k2 * c_term);
     return;
 }
 
