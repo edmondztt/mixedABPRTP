@@ -61,19 +61,21 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     /// Gets active torque vector for a given particle type
     pybind11::tuple getActiveTorque(const std::string& type_name);
 
+    void setConfParams(const std::string& type_name, pybind11::tuple v);
+    pybind11::tuple getConfParams(const std::string& type_name);
+
     std::shared_ptr<ParticleGroup>& getGroup()
         {
         return m_group;
         }
 
+    /*********** now for protected ***************/
     protected:
     //! Actually compute the forces
     virtual void computeForces(uint64_t timestep);
 
     //! Set forces for particles
     virtual void setForces();
-    void setConfParams(const std::string& type_name, pybind11::tuple v);
-    pybind11::tuple getConfParams(const std::string& type_name);
 
     //! Orientational diffusion for spherical particles
     virtual void rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep);
