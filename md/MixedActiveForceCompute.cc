@@ -563,7 +563,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
     Scalar k1, k2, c_term;
     switch (FLAG_Q)
     {
-    case m_FLAG_QH:
+    case this->m_FLAG_QH:
         ArrayHandle<Scalar> h_kH1(m_kH1,
                             access_location::host,
                             access_mode::readwrite);
@@ -575,16 +575,19 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
         c_term = (c_new - c_old)/dt;
         c_term = (c_term>0) ? c_term : 0;
         break;
-    case m_FLAG_QT:
+    case this->m_FLAG_QT:
         ArrayHandle<Scalar> h_kT1(m_kT1,
                             access_location::host,
                             access_mode::readwrite);
         ArrayHandle<Scalar> h_kT2(m_kT2,
                             access_location::host,
                             access_mode::readwrite);
+        ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD,
+                            access_location::host,
+                            access_mode::readwrite);
         k1 = h_kT1.data[typ];
         k2 = h_kT2.data[typ];
-        c_term = (c_new - m_c0_PHD.data[typ]);
+        c_term = (c_new - h_c0_PHD.data[typ]);
         c_term = (c_term>0) ? 1 : 0;
         break;
     default:
@@ -596,6 +599,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
 }
 
 void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ){
+    Scalar k1, k2;
     ArrayHandle<Scalar> h_kS1(m_kS1,
                         access_location::host,
                         access_mode::readwrite);
