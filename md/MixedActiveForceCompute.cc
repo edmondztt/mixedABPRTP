@@ -559,7 +559,7 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
 }
 
 /********** begin aux methods for internal confidence calculations  ***********/
-void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q, unsigned int typ){
+void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
     switch (FLAG_Q)
     {
@@ -594,7 +594,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Sc
         printf("FLAG_Q must be either for QH or QT!\n");
         return;
     } 
-    Q += dt * ((-k1) * Q + k2 * c_term);
+    Q += m_dt * ((-k1) * Q + k2 * c_term);
     return;
 }
 
@@ -608,7 +608,7 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ
                         access_mode::readwrite);
     k1 = h_kS1.data[typ];
     k2 = h_kS2.data[typ];
-    S += dt*((-k1) * S + k2*gamma);
+    S += m_dt*((-k1) * S + k2*gamma);
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
@@ -629,6 +629,7 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
 }
 
 void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
+    Scalar Q0, gamma0;
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate,
                         access_location::host,
                         access_mode::readwrite);
@@ -676,8 +677,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
         Scalar4 pos = h_pos.data[idx];
         c_new = compute_c_new(pos);
         // now evolve the dynamics
-        update_Q(QH, c_old, c_new, m_dt, FLAG_QH, typ);
-        update_Q(QT, c_old, c_new, m_dt, FLAG_QT, typ);
+        update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
+        update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
         update_tumble_rate(gamma, QH+QT, typ);
         update_S(S, gamma, typ);
         update_U(U, QH + QT, typ);
