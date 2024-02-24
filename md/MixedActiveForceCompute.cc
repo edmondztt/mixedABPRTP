@@ -563,7 +563,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, in
     Scalar k1, k2, c_term;
     switch (FLAG_Q)
     {
-    case this->m_FLAG_QH:
+    case m_FLAG_QH:
         ArrayHandle<Scalar> h_kH1(m_kH1,
                             access_location::host,
                             access_mode::readwrite);
@@ -572,10 +572,10 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, in
                             access_mode::readwrite);
         k1 = h_kH1.data[typ];
         k2 = h_kH2.data[typ];
-        c_term = (c_new - c_old)/dt;
+        c_term = (c_new - c_old)/m_dt;
         c_term = (c_term>0) ? c_term : 0;
         break;
-    case this->m_FLAG_QT:
+    case m_FLAG_QT:
         ArrayHandle<Scalar> h_kT1(m_kT1,
                             access_location::host,
                             access_mode::readwrite);
