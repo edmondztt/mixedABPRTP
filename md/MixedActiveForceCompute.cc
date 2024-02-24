@@ -25,8 +25,9 @@ namespace md
 MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
                                        std::shared_ptr<ParticleGroup> group)
 
-    : ForceCompute(sysdef), m_group(group)
-    {
+    : ForceCompute(sysdef), m_group(group){
+    
+    m_dt = m_deltaT; // for now just update dynamical params every timestep; TODO: can change this later.
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
     m_f_activeVec.swap(tmp_f_activeVec);
@@ -626,8 +627,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
         Scalar4 pos = h_pos.data[idx];
         c_new = compute_c_new(pos); 
         // now evolve the dynamics
-        update_Q(QH, c_old, c_new, dt, FLAG_QH);
-        update_Q(QT, c_old, c_new, dt, FLAG_QT);
+        update_Q(QH, c_old, c_new, m_dt, FLAG_QH);
+        update_Q(QT, c_old, c_new, m_dt, FLAG_QT);
         update_tumble_rate(gamma, QH+QT);
         update_S(S, gamma);
         update_U(U, QH + QT);

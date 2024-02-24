@@ -72,16 +72,18 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
 
     //! Set forces for particles
     virtual void setForces();
+    void setConfParams(const std::string& type_name, pybind11::tuple v);
+    pybind11::tuple getConfParams(const std::string& type_name);
 
     //! Orientational diffusion for spherical particles
     virtual void rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep);
-
-    //! update the speed and tumble rate
-    virtual void update_dynamical_parameters();
     //! tumble
     virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
+
+    //! update the speed and tumble rate
+    virtual void update_dynamical_parameters();
 
     void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, Scalar dt, int FLAG_Q);
     void update_S(Scalar &S, Scalar gamma);
@@ -118,6 +120,8 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     GlobalVector<Scalar> m_U1;
     GlobalVector<Scalar> m_gamma0;
     GlobalVector<Scalar> m_c0_PHD;
+
+    Scalar m_dt;
 
     private:
     int FLAG_QH = 1; // for QH
