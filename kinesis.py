@@ -117,19 +117,21 @@ integrator.methods.append(overdamped_viscous)
 mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All())
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
-mixed_active.kT2['A'] = 1
-mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.
-mixed_active.kH2['A'] = 1
-mixed_active.kS1['A'] = 1.0 / 30 # S decays in 30 s.??
-mixed_active.kS2['A'] = 0.1 
-mixed_active.Q0['A'] = 0.3 # below this will tumble
-mixed_active.Q1['A'] = 0.7 # above this will accelerate
-mixed_active.noise_Q['A'] = 0.03 
-mixed_active.U0['A'] = 20 # base velocity ~ 20 um/s
-mixed_active.U1['A'] = 10 # faster ~ +10 um/s
-mixed_active.gamma0['A'] = 1 / 10.0 # tumble about every 10 s. ??
-mixed_active.c0_PHD['A'] = 0.1e-5 # the concentration level that PHD will detect
+mixed_active.params['A'] = dict(kT1=1.0/600, kT2=1, kH1 = 0.1, kH2=1.0,
+        kS1 = 1.0/30, kS2 = 0.1, Q0=0.3, Q1=0.7, noise_Q = 0.03, U0=20, U1=10, gamma0=1 / 10.0, c0_PHD = 0.1e-5)
+# mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
+# mixed_active.kT2['A'] = 1
+# mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.
+# mixed_active.kH2['A'] = 1
+# mixed_active.kS1['A'] = 1.0 / 30 # S decays in 30 s.??
+# mixed_active.kS2['A'] = 0.1 
+# mixed_active.Q0['A'] = 0.3 # below this will tumble
+# mixed_active.Q1['A'] = 0.7 # above this will accelerate
+# mixed_active.noise_Q['A'] = 0.03 
+# mixed_active.U0['A'] = 20 # base velocity ~ 20 um/s
+# mixed_active.U1['A'] = 10 # faster ~ +10 um/s
+# mixed_active.gamma0['A'] = 1 / 10.0 # tumble about every 10 s. ??
+# mixed_active.c0_PHD['A'] = 0.1e-5 # the concentration level that PHD will detect
 
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
     trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble)

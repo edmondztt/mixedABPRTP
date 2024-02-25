@@ -241,120 +241,79 @@ pybind11::tuple MixedActiveForceCompute::getActiveTorque(const std::string& type
     }
 
 // set and get for confidence dynamics params
-void MixedActiveForceCompute::setConfParams(const std::string& type_name, pybind11::tuple v)
-{
-    unsigned int typ = this->m_pdata->getTypeByName(type_name);
-
-    // check for user errors
-    if (typ >= m_pdata->getNTypes())
-        {
+void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
+    Scalar kT2,
+    Scalar kH1,
+    Scalar kH2,
+    Scalar kS1,
+    Scalar kS2,
+    Scalar Q0, 
+    Scalar Q1, 
+    Scalar noise_Q,
+    Scalar U0,
+    Scalar U1,
+    Scalar gamma0,
+    Scalar c0_PHD){
+    // make sure the type is valid
+    if (type >= m_pdata->getNTypes()){
         throw std::invalid_argument("Type does not exist");
-        }
-
-    Scalar kT1, kT2, kH1, kH2, kS1, kS2, Q0, Q1, noise_Q, U0, U1, gamma0, c0_PHD;
-    kT1 = pybind11::cast<Scalar>(v[0]);
-    kT2 = pybind11::cast<Scalar>(v[1]);
-    kH1 = pybind11::cast<Scalar>(v[2]);
-    kH2 = pybind11::cast<Scalar>(v[3]);
-    kS1 = pybind11::cast<Scalar>(v[4]);
-    kS2 = pybind11::cast<Scalar>(v[5]);
-    Q0 = pybind11::cast<Scalar>(v[6]);
-    Q1 = pybind11::cast<Scalar>(v[7]);
-    noise_Q = pybind11::cast<Scalar>(v[8]);
-    U0 = pybind11::cast<Scalar>(v[9]);
-    U1 = pybind11::cast<Scalar>(v[10]);
-    gamma0 = pybind11::cast<Scalar>(v[11]);
-    c0_PHD = pybind11::cast<Scalar>(v[12]);
-
-    ArrayHandle<Scalar> h_kT1(m_kT1,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kT1.data[typ] = kT1;
-    ArrayHandle<Scalar> h_kT2(m_kT2,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kT2.data[typ] = kT2;
-    ArrayHandle<Scalar> h_kH1(m_kH1,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kH1.data[typ] = kH1;
-    ArrayHandle<Scalar> h_kH2(m_kH2,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kH2.data[typ] = kH2;
-    ArrayHandle<Scalar> h_kS1(m_kS1,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kS1.data[typ] = kS1;
-    ArrayHandle<Scalar> h_kS2(m_kS2,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_kS2.data[typ] = kS2;
-    ArrayHandle<Scalar> h_Q0(m_Q0,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_Q0.data[typ] = Q0;
-    ArrayHandle<Scalar> h_Q1(m_Q1,
-                        access_location::host,
-                        access_mode::readwrite);
-    h_Q1.data[typ] = Q1;
-    ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::readwrite);
-    h_noise_Q.data[typ] = noise_Q;
-    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::readwrite);
-    h_U0.data[typ] = U0;
-    ArrayHandle<Scalar> h_U1(m_U1, access_location::host, access_mode::readwrite);
-    h_U1.data[typ] = U1;
-    ArrayHandle<Scalar> h_gamma0(m_gamma0, access_location::host, access_mode::readwrite);
-    h_gamma0.data[typ] = gamma0;
-    ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD, access_location::host, access_mode::readwrite);
-    h_c0_PHD.data[typ] = c0_PHD;
+    }
+    m_kT1[type] = kT1;
+    m_kT2[type] = kT2;
+    m_kH1[type] = kH1;
+    m_kH2[type] = kH2;
+    m_kS1[type] = kS1;
+    m_kS2[type] = kS2;
+    m_Q0[type] =  Q0;
+    m_Q1[type] =  Q1;
+    m_noise_Q[type] = noise_Q;
+    m_U0[type] = U0;
+    m_U1[type] = U1;
+    m_gamma0[type] = gamma0;
+    m_c0_PHD[type] = c0_PHD;
 }
 
-pybind11::tuple MixedActiveForceCompute::getConfParams(const std::string& type_name)
-    {
-    pybind11::list v;
-    unsigned int typ = this->m_pdata->getTypeByName(type_name);
-    ArrayHandle<Scalar> h_kT1(m_kT1, access_location::host, access_mode::read);
-    Scalar kT1 = h_kT1.data[typ];
-    ArrayHandle<Scalar> h_kT2(m_kT2, access_location::host, access_mode::read);
-    Scalar kT2 = h_kT2.data[typ];
-    ArrayHandle<Scalar> h_kH1(m_kH1, access_location::host, access_mode::read);
-    Scalar kH1 = h_kH1.data[typ];
-    ArrayHandle<Scalar> h_kH2(m_kH2, access_location::host, access_mode::read);
-    Scalar kH2 = h_kH2.data[typ];
-    ArrayHandle<Scalar> h_kS1(m_kS1, access_location::host, access_mode::read);
-    Scalar kS1 = h_kS1.data[typ];
-    ArrayHandle<Scalar> h_kS2(m_kS2, access_location::host, access_mode::read);
-    Scalar kS2 = h_kS2.data[typ];
-    ArrayHandle<Scalar> h_Q0(m_Q0, access_location::host, access_mode::read);
-    Scalar Q0 = h_Q0.data[typ];
-    ArrayHandle<Scalar> h_Q1(m_Q1, access_location::host, access_mode::read);
-    Scalar Q1 = h_Q1.data[typ];
-    ArrayHandle<Scalar> h_noise_Q(m_noise_Q, access_location::host, access_mode::read);
-    Scalar noise_Q = h_noise_Q.data[typ];
-    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
-    Scalar U0 = h_U0.data[typ];
-    ArrayHandle<Scalar> h_U1(m_U1, access_location::host, access_mode::read);
-    Scalar U1 = h_U1.data[typ];
-    ArrayHandle<Scalar> h_gamma0(m_gamma0, access_location::host, access_mode::read);
-    Scalar gamma0 = h_gamma0.data[typ];
-    ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD, access_location::host, access_mode::read);
-    Scalar c0_PHD = h_c0_PHD.data[typ];
-    
-    v.append(kT1);
-    v.append(kT2);
-    v.append(kH1);
-    v.append(kH2);
-    v.append(kS1);
-    v.append(kS2);
-    v.append(Q0);
-    v.append(Q1);
-    v.append(noise_Q);
-    v.append(U0);
-    v.append(U1);
-    v.append(gamma0);
-    v.append(c0_PHD);
-    return pybind11::tuple(v);
+void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict params){
+    auto typ = m_pdata->getTypeByName(type);
+    auto _params = mixedactive_params(params);
+    setParams(typ, _params.kT1,
+    _params.kT2,
+    _params.kH1,
+    _params.kH2,
+    _params.kS1,
+    _params.kS2,
+    _params.Q0, 
+    _params.Q1, 
+    _params.noise_Q,
+    _params.U0,
+    _params.U1,
+    _params.gamma0,
+    _params.c0_PHD);
+    }
+
+pybind11::dict MixedActiveForceCompute::getParams(std::string type){
+    auto typ = m_pdata->getTypeByName(type);
+    if (typ >= m_pdata->getNTypes())
+        {
+        throw runtime_error("Invalid angle type.");
+        }
+
+    pybind11::dict params;
+    params["kT1"] = m_kT1[typ];
+    params["kT2"] = m_kT2[typ];
+    params["kH1"] = m_kH1[typ];
+    params["kH2"] = m_kH2[typ];
+    params["kS1"] = m_kS1[typ];
+    params["kS2"] = m_kS2[typ];
+    params["Q0"] = m_Q0[typ];
+    params["Q1"] = m_Q1[typ];
+    params["noise_Q"] = m_noise_Q[typ];
+    params["U0"] = m_U0[typ];
+    params["U1"] = m_U1[typ];
+    params["gamma0"] = m_gamma0[typ];
+    params["c0_PHD"] = m_c0_PHD[typ];
+
+    return params;
     }
 
 
@@ -563,21 +522,16 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, in
     Scalar k1, k2, c_term;
     switch (FLAG_Q) {
     case m_FLAG_QH: {
-        ArrayHandle<Scalar> h_kH1(m_kH1, access_location::host, access_mode::readwrite);
-        ArrayHandle<Scalar> h_kH2(m_kH2, access_location::host, access_mode::readwrite);
-        k1 = h_kH1.data[typ];
-        k2 = h_kH2.data[typ];
+        k1 = m_kH1[typ];
+        k2 = m_kH2[typ];
         c_term = (c_new - c_old)/m_dt;
         c_term = (c_term>0) ? c_term : 0;
         break;
     }
     case m_FLAG_QT: {
-        ArrayHandle<Scalar> h_kT1(m_kT1, access_location::host, access_mode::readwrite);
-        ArrayHandle<Scalar> h_kT2(m_kT2, access_location::host, access_mode::readwrite);
-        ArrayHandle<Scalar> h_c0_PHD(m_c0_PHD, access_location::host, access_mode::readwrite);
-        k1 = h_kT1.data[typ];
-        k2 = h_kT2.data[typ];
-        c_term = (c_new - h_c0_PHD.data[typ]);
+        k1 = m_kT1[typ];
+        k2 = m_kT2[typ];
+        c_term = (c_new - m_c0_PHD[typ]);
         c_term = (c_term>0) ? 1 : 0;
         break;
     }
@@ -591,44 +545,23 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, in
 
 void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ){
     Scalar k1, k2;
-    ArrayHandle<Scalar> h_kS1(m_kS1,
-                        access_location::host,
-                        access_mode::readwrite);
-    ArrayHandle<Scalar> h_kS2(m_kS2,
-                        access_location::host,
-                        access_mode::readwrite);
-    k1 = h_kS1.data[typ];
-    k2 = h_kS2.data[typ];
+    k1 = m_kS1[typ];
+    k2 = m_kS2[typ];
     S += m_dt*((-k1) * S + k2*gamma);
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
-    ArrayHandle<Scalar> h_U0(m_U0,
-                        access_location::host,
-                        access_mode::readwrite);
-    ArrayHandle<Scalar> h_U1(m_U1,
-                        access_location::host,
-                        access_mode::readwrite);
-    ArrayHandle<Scalar> h_Q1(m_Q1,
-                        access_location::host,
-                        access_mode::readwrite);
     Scalar U0, U1, Q1;
-    U0 = h_U0.data[typ];
-    U1 = h_U1.data[typ];
-    Q1 = h_Q1.data[typ];
+    U0 = m_U0[typ];
+    U1 = m_U1[typ];
+    Q1 = m_Q1[typ];
     U = U0 + U1 * tanh(Q-Q1);
 }
 
 void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
     Scalar Q0, gamma0;
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate,
-                        access_location::host,
-                        access_mode::readwrite);
-    ArrayHandle<Scalar> h_Q0(m_Q0,
-                        access_location::host,
-                        access_mode::readwrite);
-    gamma0 = h_tumble_rate.data[typ];
-    Q0 = h_Q0.data[typ];
+    gamma0 = m_gamma0[typ];
+    Q0 = m_Q0[typ];
     gamma = gamma0 * (1 - tanh(Q-Q0));
 }
 
@@ -708,8 +641,8 @@ void export_MixedActiveForceCompute(pybind11::module& m)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)
         .def("getActiveTorque", &MixedActiveForceCompute::getActiveTorque)
-        .def("setConfParams", &MixedActiveForceCompute::setConfParams)
-        .def("getConfParams", &MixedActiveForceCompute::getConfParams)
+        .def("setParams", &MixedActiveForceCompute::setParamsPython)
+        .def("getParams", &MixedActiveForceCompute::getParams)
         .def_property_readonly("filter",
                                [](MixedActiveForceCompute& force)
                                { return force.getGroup()->getFilter(); });

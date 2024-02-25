@@ -25,6 +25,57 @@ namespace hoomd
     {
 namespace md
     {
+
+struct mixedactive_params{
+    Scalar kT1;
+    Scalar kT2;
+    Scalar kH1;
+    Scalar kH2;
+    Scalar kS1;
+    Scalar kS2;
+    Scalar Q0; // lower threshold for gamma
+    Scalar Q1; // upper threshold for U
+    Scalar noise_Q;
+    Scalar U0;
+    Scalar U1;
+    Scalar gamma0;
+    Scalar c0_PHD;
+
+#ifndef __HIPCC__
+    mixedactive_params() : kT1(1.0/600),kT2(1.0),kH1(0.1),kH2(1.0),kS1(1.0/30),
+    kS2(0.1),Q0(0.3),Q1(0.7),noise_Q(0.02),U0(20),U1(10),gamma0(0.1),c0_PHD(0.1e-5) { }
+
+    mixedactive_params(pybind11::dict params)
+        : kT1(params["kT1"].cast<Scalar>()), kT2(params["kT2"].cast<Scalar>()),
+        kH1(params["kH1"].cast<Scalar>()), kH2(params["kH2"].cast<Scalar>()),
+        kS1(params["kS1"].cast<Scalar>()), kS2(params["kS2"].cast<Scalar>()),
+        Q0(params["Q0"].cast<Scalar>()), Q1(params["Q1"].cast<Scalar>()),
+        noise_Q(params["noise_Q"].cast<Scalar>()), 
+        U0(params["U0"].cast<Scalar>()), U1(params["U1"].cast<Scalar>()),
+        gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>())
+        {
+        }
+
+    pybind11::dict asDict()
+        {
+        pybind11::dict v;
+        v['kT1'] = kT1;
+        v['kT2'] = kT2;
+        v['kH1'] = kH1;
+        v['kH2'] = kH2;
+        v['kS1'] = kS1;
+        v['kS2'] = kS2;
+        v['Q0)'] = Q0; 
+        v['Q1)'] = Q1;
+        v['noie_Q'] = noise_Q;
+        v['U0)'] = U0;
+        v['U1)'] = U1
+        v['gamma0'] = gamma0;
+        v['c0_PHD'] = c0_PHD;
+        return v;
+        }
+#endif
+}
 // Forward declaration is necessary to avoid circular includes between this and
 // MixedActiveRotationalDiffusionRunTumbleUpdater.h while making MixedActiveRotationalDiffusionRunTumbleUpdater a friend class
 // of MixedActiveForceCompute.
@@ -61,8 +112,24 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     /// Gets active torque vector for a given particle type
     pybind11::tuple getActiveTorque(const std::string& type_name);
 
-    void setConfParams(const std::string& type_name, pybind11::tuple v);
-    pybind11::tuple getConfParams(const std::string& type_name);
+    virtual void setParams(unsigned int type, Scalar m_kT1,
+    Scalar m_kT2,
+    Scalar m_kH1,
+    Scalar m_kH2,
+    Scalar m_kS1,
+    Scalar m_kS2,
+    Scalar m_Q0, 
+    Scalar m_Q1, 
+    Scalar m_noise_Q,
+    Scalar m_U0,
+    Scalar m_U1,
+    Scalar m_gamma0,
+    Scalar m_c0_PHD);
+
+    virtual void setParamsPython(std::string type, pybind11::dict params);
+
+    /// Get the parameters for a given type
+    virtual pybind11::dict getParams(std::string type);
 
     std::shared_ptr<ParticleGroup>& getGroup()
         {
@@ -108,22 +175,21 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     GlobalVector<Scalar> m_S;
     GlobalVector<Scalar> m_c; // c_old
 
-    // by type:
-    GlobalVector<Scalar> m_kT1;
-    GlobalVector<Scalar> m_kT2;
-    GlobalVector<Scalar> m_kH1;
-    GlobalVector<Scalar> m_kH2;
-    GlobalVector<Scalar> m_kS1;
-    GlobalVector<Scalar> m_kS2;
-    GlobalVector<Scalar> m_Q0; // lower threshold for gamma
-    GlobalVector<Scalar> m_Q1; // upper threshold for U
-    GlobalVector<Scalar> m_noise_Q;
-    GlobalVector<Scalar> m_U0;
-    GlobalVector<Scalar> m_U1;
-    GlobalVector<Scalar> m_gamma0;
-    GlobalVector<Scalar> m_c0_PHD;
-
     Scalar m_dt;
+    // by type:
+    Scalar* m_kT1;
+    Scalar* m_kT2;
+    Scalar* m_kH1;
+    Scalar* m_kH2;
+    Scalar* m_kS1;
+    Scalar* m_kS2;
+    Scalar* m_Q0; // lower threshold for gamma
+    Scalar* m_Q1; // upper threshold for U
+    Scalar* m_noise_Q;
+    Scalar* m_U0;
+    Scalar* m_U1;
+    Scalar* m_gamma0;
+    Scalar* m_c0_PHD;
 
     private:
     static constexpr int m_FLAG_QH = 1; // for QH
