@@ -59,19 +59,19 @@ struct mixedactive_params{
     pybind11::dict asDict()
         {
         pybind11::dict v;
-        v['kT1'] = kT1;
-        v['kT2'] = kT2;
-        v['kH1'] = kH1;
-        v['kH2'] = kH2;
-        v['kS1'] = kS1;
-        v['kS2'] = kS2;
-        v['Q0)'] = Q0; 
-        v['Q1)'] = Q1;
-        v['noie_Q'] = noise_Q;
-        v['U0)'] = U0;
-        v['U1)'] = U1
-        v['gamma0'] = gamma0;
-        v['c0_PHD'] = c0_PHD;
+        v["kT1"] = kT1;
+        v["kT2"] = kT2;
+        v["kH1"] = kH1;
+        v["kH2"] = kH2;
+        v["kS1"] = kS1;
+        v["kS2"] = kS2;
+        v["Q0"] = Q0; 
+        v["Q1"] = Q1;
+        v["noie_Q"] = noise_Q;
+        v["U0"] = U0;
+        v["U1"] = U1;
+        v["gamma0"] = gamma0;
+        v["c0_PHD"] = c0_PHD;
         return v;
         }
 #endif

@@ -63,14 +63,14 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     for (unsigned int i = 0; i < m_tumble_rate.size(); i++)
         h_tumble_rate.data[i] = 0.0;
     // U0 initialize
-    GlobalVector<Scalar> tmp_U0(max_num_particles, m_exec_conf);
-    m_U0.swap(tmp_U0);
-    TAG_ALLOCATION(m_U0);
-    ArrayHandle<Scalar> h_U0(m_U0,
+    GlobalVector<Scalar> tmp_U(max_num_particles, m_exec_conf);
+    m_U.swap(tmp_U);
+    TAG_ALLOCATION(m_U);
+    ArrayHandle<Scalar> h_U(m_U,
                             access_location::host,
                             access_mode::overwrite);
     for (unsigned int i = 0; i < m_U0.size(); i++)
-        h_U0.data[i] = 0.0;
+        h_U.data[i] = 20.0; // initialize velocities to all be 20 um/s
     // QH initialize
     GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
     m_QH.swap(tmp_QH);
