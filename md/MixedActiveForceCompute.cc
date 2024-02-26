@@ -670,7 +670,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_QT.data[idx] = QT;
         h_S.data[idx] = S;
         h_U.data[idx] = U;
-        printf("now at timestep %d, part %d updated U=%g after update dynamical\n", timestep, idx, U);
+        printf("now at timestep %d, part %d type %d: updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, QH, QT, gamma, S, U);
         h_tumble_rate.data[idx] = gamma;
     }
     printf("\n\n");
