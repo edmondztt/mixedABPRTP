@@ -60,8 +60,7 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 0.5
-U0 = 20
-runtime = 100
+runtime = 0.01
 
 gsd_filename = 'test.gsd'
 fname_init = 'init.gsd'
@@ -162,6 +161,13 @@ simulation.operations.writers.append(
 gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
+
+
+c_filename = "dilute_c_crosssection_agar.txt"
+dr = 0.1
+dtheta = np.pi/180
+mixed_active.set_grid_size(dr, dtheta)
+mixed_active.set_concentration_field_file(c_filename)
 
 init_time = time.time()
 last_output = init_time
