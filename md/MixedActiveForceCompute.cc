@@ -98,6 +98,15 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                             access_mode::overwrite);
     for (unsigned int i = 0; i < m_S.size(); i++)
         h_S.data[i] = 0.0;
+    
+    GlobalVector<Scalar> tmp_c(max_num_particles, m_exec_conf);
+    m_c.swap(tmp_c);
+    TAG_ALLOCATION(m_c);
+    ArrayHandle<Scalar> h_c(m_c,
+                            access_location::host,
+                            access_mode::overwrite);
+    for (unsigned int i = 0; i < m_c.size(); i++)
+        h_c.data[i] = 0.0;
 
     m_kT1 = new Scalar[m_pdata->getNTypes()];
     m_kT2 = new Scalar[m_pdata->getNTypes()];
