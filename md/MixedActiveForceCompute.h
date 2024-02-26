@@ -31,7 +31,11 @@ namespace md
 // of MixedActiveForceCompute.
 class MixedActiveRotationalDiffusionRunTumbleUpdater;
 
-struct mixedactive_params{
+#if HOOMD_LONGREAL_SIZE == 32
+struct __attribute__((aligned(8))) mixedactive_params {
+#else
+struct __attribute__((aligned(16))) mixedactive_params {
+#endif
     Scalar kT1;
     Scalar kT2;
     Scalar kH1;
@@ -81,12 +85,6 @@ struct mixedactive_params{
         }
 #endif
 };
-
-#if HOOMD_LONGREAL_SIZE == 32
-    __attribute__((aligned(8)));
-#else
-    __attribute__((aligned(16)));
-#endif
 
 //! Adds an active force to a number of particles
 /*! \ingroup computes
