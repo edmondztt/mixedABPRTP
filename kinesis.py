@@ -162,6 +162,7 @@ gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
 
+simulation.run(0)
 
 c_filename = "dilute_c_crosssection_agar.txt"
 dr = 0.1
