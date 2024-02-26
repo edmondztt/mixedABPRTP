@@ -143,7 +143,7 @@ public:
 
         file.close();
     }
-    
+
 };
 
 
@@ -205,8 +205,7 @@ struct __attribute__((aligned(16))) mixedactive_params {
 //! Adds an active force to a number of particles
 /*! \ingroup computes
  */
-class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
-    {
+class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     public:
     //! Constructs the compute
     MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
@@ -252,8 +251,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     /// Get the parameters for a given type
     virtual pybind11::dict getParams(std::string type);
 
-    std::shared_ptr<ParticleGroup>& getGroup()
-        {
+    std::shared_ptr<ParticleGroup>& getGroup(){
         return m_group;
         }
 
@@ -323,7 +321,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     friend class MixedActiveRotationalDiffusionRunTumbleUpdater;
     };
 
-};
+
 
     } // end namespace md
     } // end namespace hoomd
