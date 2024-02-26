@@ -22,10 +22,8 @@ namespace md
 /*! \param rotation_diff rotational diffusion constant for all particles.
     \param tumble_rate
  */
-MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
-                                       std::shared_ptr<ParticleGroup> group)
-
-    : ForceCompute(sysdef), m_group(group){
+MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group)
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>()) {
     
     m_dt = m_deltaT; // for now just update dynamical params every timestep; TODO: can change this later.
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
@@ -141,6 +139,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                       0);
         }
 #endif
+
     }
 
 MixedActiveForceCompute::~MixedActiveForceCompute()

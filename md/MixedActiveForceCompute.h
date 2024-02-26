@@ -196,6 +196,8 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     Scalar* m_gamma0;
     Scalar* m_c0_PHD;
 
+    std::unique_ptr<PolarDataGrid> m_grid_data;
+
     private:
     static constexpr int m_FLAG_QH = 1; // for QH
     static constexpr int m_FLAG_QT = 2; // for QT
@@ -204,6 +206,121 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute
     // MixedActiveRotationalDiffusionRunTumbleUpdater to call rotationalDiffusion.
     friend class MixedActiveRotationalDiffusionRunTumbleUpdater;
     };
+
+class PolarDataGrid {
+private:
+    std::vector<std::vector<std::vector<double>>> grid; // 3D vector for data values
+    double rMin, thetaMin, tMin; // Minimum bounds for r, theta, and t
+    double deltaR, deltaTheta, deltaT; // Discretization steps for r, theta, and t
+    int rSize, thetaSize, tSize; // Sizes of the grid in each dimension
+
+public:
+    PolarDataGrid(double rMin = 0, double rMax = 10, double thetaMin = 0, 
+                double thetaMax = 2 * M_PI,
+                double tMin = 0, double tMax = 600, double deltaR = 0.1, double deltaTheta = M_PI / 180,
+                double deltaT = 10)
+        : rMin(rMin), thetaMin(thetaMin), tMin(tMin), deltaR(deltaR), deltaTheta(deltaTheta), deltaT(deltaT) {
+        rSize = static_cast<int>((rMax - rMin) / deltaR) + 1;
+        thetaSize = static_cast<int>((thetaMax - thetaMin) / deltaTheta) + 1;
+        tSize = static_cast<int>((tMax - tMin) / deltaT) + 1;
+
+        grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
+    }
+
+    void setGridSize(double rSize, double thetaSize){
+        grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
+    }
+
+    void setData(double r, double theta, double t, double value) {
+        int i = static_cast<int>((r - rMin) / deltaR);
+        int j = static_cast<int>((theta - thetaMin) / deltaTheta);
+        int k = static_cast<int>((t - tMin) / deltaT);
+
+        if (i < 0 || i >= rSize || j < 0 || j >= thetaSize || k < 0 || k >= tSize) {
+            throw std::out_of_range("Data point coordinates out of grid bounds.");
+        }
+
+        grid[i][j][k] = value;
+    }
+
+    double getData(double r, double theta, double t) {
+        // Normalize theta to [0, 2*pi)
+        theta = fmod(theta, 2 * M_PI);
+        if (theta < 0) theta += 2 * M_PI;
+
+        // Convert to grid indices
+        double ir = (r - rMin) / deltaR;
+        double itheta = (theta - thetaMin) / deltaTheta;
+        double it = (t - tMin) / deltaT;
+
+        // Find the bounding indices for interpolation
+        int irLow = std::max(0, static_cast<int>(floor(ir)));
+        int irHigh = std::min(rSize - 1, irLow + 1);
+        int ithetaLow = static_cast<int>(floor(itheta)) % thetaSize;
+        int ithetaHigh = (ithetaLow + 1) % thetaSize;
+        int itLow = std::max(0, static_cast<int>(floor(it)));
+        int itHigh = std::min(tSize - 1, itLow + 1);
+
+        // Compute weights for interpolation
+        double wR = ir - irLow;
+        double wTheta = itheta - ithetaLow;
+        double wT = it - itLow;
+
+        // Interpolate along r, theta, and t
+        double value = 0.0;
+        for (int i : {irLow, irHigh}) {
+            for (int j : {ithetaLow, ithetaHigh}) {
+                for (int k : {itLow, itHigh}) {
+                    double weight = (i == irLow ? 1 - wR : wR) *
+                                    (j == ithetaLow ? 1 - wTheta : wTheta) *
+                                    (k == itLow ? 1 - wT : wT);
+                    value += grid[i][j][k] * weight;
+                }
+            }
+        }
+        return value;
+    }
+
+    void loadDataFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filename);
+    }
+
+    std::string line;
+    // Skip metadata lines
+    while (std::getline(file, line)) {
+        if (line.empty() || line[0] != '%') {
+            break; // Reached the data section
+        }
+    }
+
+    // Continue with the first line of data
+    do {
+        if (line.empty() || line[0] == '%') continue; // Skip any potential empty line or late metadata
+
+        std::istringstream iss(line);
+        double x, y, z;
+        iss >> x >> y >> z; // Read coordinates
+
+        // Convert (x, y) to polar coordinates (r, theta)
+        double r = sqrt(x * x + y * y);
+        double theta = atan2(y, x);
+        if (theta < 0) theta += 2 * M_PI; // Ensure theta is within [0, 2*pi)
+
+        // Read and set concentration values for each time point
+        double value;
+        int time = 0; // Assuming time starts at 0 and increments in fixed intervals as per the file format
+        while (iss >> value) {
+            this->setData(r, theta, time, value);
+            time += 10; // Increment time based on the assumption each column is 10 units apart
+        }
+    } while (std::getline(file, line));
+
+    file.close();
+}
+
+};
 
     } // end namespace md
     } // end namespace hoomd
