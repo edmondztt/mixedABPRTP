@@ -618,7 +618,7 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
     Scalar r, theta, t;
     Scalar x, y;
-    x = pos[0]; y = pos[1];
+    x = pos.x; y = pos.y;
     t = m_deltaT * timestep;
     r = sqrt(x * x + y * y);
     theta = atan2(y, x);
