@@ -656,6 +656,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         c_old = h_c.data[idx];
         gamma = h_tumble_rate.data[idx];
         Scalar4 pos = h_pos.data[idx];
+        printf("now at timestep %d, pos[%d]=%g,%g,%g. before compute new c\n", idx, pos.x, pos.y, pos.z);
         c_new = compute_c_new(pos, timestep);
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
