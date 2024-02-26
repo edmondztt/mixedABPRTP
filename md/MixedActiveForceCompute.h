@@ -35,6 +35,7 @@ class PolarDataGrid {
 private:
     std::vector<std::vector<std::vector<double>>> grid; // 3D vector for data values
     double rMin, thetaMin, tMin; // Minimum bounds for r, theta, and t
+    double rMax, thetaMax, tMax; // Max bounds for r, theta, and t
     double deltaR, deltaTheta, deltaT; // Discretization steps for r, theta, and t
     int rSize, thetaSize, tSize; // Sizes of the grid in each dimension
 
@@ -51,9 +52,9 @@ public:
         grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
     }
 
-    void setGridSize(int dr, int dtheta){
+    void setGridSize(double dr, double dtheta){
         int Nr = static_cast<int>((rMax - rMin) / dr) + 1;
-        int Ntheta = = static_cast<int>((thetaMax - thetaMin) / dtheta) + 1;
+        int Ntheta = static_cast<int>((thetaMax - thetaMin) / dtheta) + 1;
         grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
     }
 
