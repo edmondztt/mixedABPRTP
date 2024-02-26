@@ -142,7 +142,7 @@ public:
     } while (std::getline(file, line));
 
     file.close();
-}
+};
 
 
 #if HOOMD_LONGREAL_SIZE == 32
