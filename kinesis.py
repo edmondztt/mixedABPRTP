@@ -176,7 +176,7 @@ integrator.forces.append(shifted_lj_wall)
 init_time = time.time()
 last_output = init_time
 
-simulation.run(0)
+simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
 c_filename = "dilute_c_crosssection_agar.txt"
 mixed_active.set_grid_size(dr, dtheta, rmax)
