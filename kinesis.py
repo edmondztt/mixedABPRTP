@@ -60,7 +60,7 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 0.5
-U0 = 0.1
+U0 = 20
 runtime = 100
 
 gsd_filename = 'test.gsd'
@@ -75,7 +75,9 @@ if(not os.path.exists(gsd_filename)):
         N_particles = 4 * m**2
         spacing = 10
         K = math.ceil(N_particles ** (1 / 2))
+        print('K=',K)
         L = K * spacing
+        print('L=',L)
         x = np.linspace(-L / 2, L / 2, K, endpoint=False)
         X, Y = np.meshgrid(x,x)
         X = X.flatten()
