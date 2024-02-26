@@ -516,7 +516,6 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
         {
         unsigned int idx = m_group->getMemberIndex(i);
-        unsigned int type = __scalar_as_int(h_pos.data[idx].w);
 
         if (h_tumble_rate.data[idx] != 0)
             {

@@ -44,7 +44,7 @@ public:
                 double thetaMax = 2 * M_PI,
                 double tMin = 0, double tMax = 600, double deltaR = 0.1, double deltaTheta = M_PI / 180,
                 double deltaT = 10)
-        : rMin(rMin), thetaMin(thetaMin), tMin(tMin), deltaR(deltaR), deltaTheta(deltaTheta), deltaT(deltaT) {
+        : rMin(rMin), thetaMin(thetaMin), tMin(tMin), rMax(rMax), thetaMax(thetaMax), tMax(tMax), deltaR(deltaR), deltaTheta(deltaTheta), deltaT(deltaT) {
         rSize = static_cast<int>((rMax - rMin) / deltaR) + 1;
         thetaSize = static_cast<int>((thetaMax - thetaMin) / deltaTheta) + 1;
         tSize = static_cast<int>((tMax - tMin) / deltaT) + 1;
@@ -55,6 +55,7 @@ public:
     void setGridSize(double dr, double dtheta){
         int Nr = static_cast<int>((rMax - rMin) / dr) + 1;
         int Ntheta = static_cast<int>((thetaMax - thetaMin) / dtheta) + 1;
+        printf("now within PolarDataGrid setGridSize: Nr=%d,Ntheta=%d\n", Nr, Ntheta);
         grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
     }
 
