@@ -73,7 +73,7 @@ if(not os.path.exists(gsd_filename)):
     if(not os.path.exists(fname_init)):
         m = 4
         N_particles = 4 * m**2
-        spacing = 1.3
+        spacing = 10
         K = math.ceil(N_particles ** (1 / 2))
         L = K * spacing
         x = np.linspace(-L / 2, L / 2, K, endpoint=False)
