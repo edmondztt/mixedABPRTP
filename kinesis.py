@@ -171,7 +171,8 @@ simulation.run(0)
 c_filename = "dilute_c_crosssection_agar.txt"
 dr = 0.1
 dtheta = np.pi/180
-mixed_active.set_grid_size(dr, dtheta)
+rmax = 100
+mixed_active.set_grid_size(dr, dtheta, rmax)
 mixed_active.set_concentration_field_file(c_filename)
 
 simulation.run(int(runtime/dt))

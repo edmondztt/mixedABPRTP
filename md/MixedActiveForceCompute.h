@@ -62,7 +62,7 @@ public:
         deltaTheta = dtheta;
     }
 
-    int getGridSize(){
+    unsigned long int getGridSize(){
         return grid.size();
     }
 
