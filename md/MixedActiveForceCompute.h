@@ -72,7 +72,8 @@ public:
         int k = static_cast<int>((t - tMin) / deltaT);
 
         if (i < 0 || i >= rSize || j < 0 || j >= thetaSize || k < 0 || k >= tSize) {
-            throw std::out_of_range("Data point coordinates out of grid bounds. rMin=%g, rMax=%g, dr=%g, theta min=%g, max=%g, dtheta=%g, rSize=%g, thetaSize=%g\n", rMin, rMax, deltaR, thetaMin, thetaMax, deltaTheta, rSize, thetaSize);
+            printf("rMin=%g, rMax=%g, dr=%g, theta min=%g, max=%g, dtheta=%g, rSize=%g, thetaSize=%g\n", rMin, rMax, deltaR, thetaMin, thetaMax, deltaTheta, rSize, thetaSize);
+            throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
 
         grid[i][j][k] = value;
