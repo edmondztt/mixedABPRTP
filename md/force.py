@@ -634,74 +634,81 @@ class MixedActive(Force):
             type_kind="particle_types",
             param_dict=TypeParameterDict((0.0, 0.0, 0.0), len_keys=1),
         )
-        kH1 = TypeParameter(
-            "kH1",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        kH2 = TypeParameter(
-            "kH2",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        kT1 = TypeParameter(
-            "kT1",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        kT2 = TypeParameter(
-            "kT2",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        kS1 = TypeParameter(
-            "kS1",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        kS2 = TypeParameter(
-            "kS2",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        Q0 = TypeParameter(
-            "Q0",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.3, len_keys=1),
-        )
-        Q1 = TypeParameter(
-            "Q1",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.7, len_keys=1),
-        )
-        U0 = TypeParameter(
-            "U0",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(20, len_keys=1),
-        )
-        U1 = TypeParameter(
-            "U1",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(10, len_keys=1),
-        )
-        gamma0 = TypeParameter(
-            "gamma0",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.1, len_keys=1),
-        )
-        c0_PHD = TypeParameter(
-            "c0_PHD",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.2e-5, len_keys=1),
-        )
-        noise_Q = TypeParameter(
-            "noise_Q",
-            type_kind="particle_types",
-            param_dict=TypeParameterDict(0.05, len_keys=1),
-        )
-
-        self._extend_typeparam([mixed_active_force, active_torque,
-            kH1, kH2, kT1, kT2, kS1, kS2, Q0, Q1, U0, U1, gamma0, c0_PHD, noise_Q])
+        self._extend_typeparam([mixed_active_force, active_torque])
+        # kH1 = TypeParameter(
+        #     "kH1",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # kH2 = TypeParameter(
+        #     "kH2",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # kT1 = TypeParameter(
+        #     "kT1",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # kT2 = TypeParameter(
+        #     "kT2",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # kS1 = TypeParameter(
+        #     "kS1",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # kS2 = TypeParameter(
+        #     "kS2",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # Q0 = TypeParameter(
+        #     "Q0",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.3, len_keys=1),
+        # )
+        # Q1 = TypeParameter(
+        #     "Q1",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.7, len_keys=1),
+        # )
+        # U0 = TypeParameter(
+        #     "U0",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(20, len_keys=1),
+        # )
+        # U1 = TypeParameter(
+        #     "U1",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(10, len_keys=1),
+        # )
+        # gamma0 = TypeParameter(
+        #     "gamma0",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.1, len_keys=1),
+        # )
+        # c0_PHD = TypeParameter(
+        #     "c0_PHD",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.2e-5, len_keys=1),
+        # )
+        # noise_Q = TypeParameter(
+        #     "noise_Q",
+        #     type_kind="particle_types",
+        #     param_dict=TypeParameterDict(0.05, len_keys=1),
+        # )
+        
+        params = TypeParameter('params', 'types',
+                TypeParameterDict(kH1=float, kH2=float, kT1=float, kT2=float, 
+                                  kS1=float, kS2=float, Q0=float, Q1=float,
+                                  U0=float, U1=float, gamma0=float, c0_PHD=float, noise_Q=float,
+                                  len_keys=1))
+        self._add_typeparam(params)
+        # self._extend_typeparam([mixed_active_force, active_torque,
+        #     kH1, kH2, kT1, kT2, kS1, kS2, Q0, Q1, U0, U1, gamma0, c0_PHD, noise_Q])
 
     def _attach_hook(self):
         # Active forces use RNGs. Warn the user if they did not set the seed.
