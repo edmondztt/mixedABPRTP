@@ -162,6 +162,10 @@ gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
 
+
+init_time = time.time()
+last_output = init_time
+
 simulation.run(0)
 
 c_filename = "dilute_c_crosssection_agar.txt"
@@ -170,6 +174,4 @@ dtheta = np.pi/180
 mixed_active.set_grid_size(dr, dtheta)
 mixed_active.set_concentration_field_file(c_filename)
 
-init_time = time.time()
-last_output = init_time
 simulation.run(int(runtime/dt))
