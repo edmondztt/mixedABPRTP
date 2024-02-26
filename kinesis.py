@@ -68,19 +68,17 @@ fname_init = 'init.gsd'
 cpu = hoomd.device.CPU()
 simulation = hoomd.Simulation(device=cpu, seed=1)
 
+dr = 0.1
+dtheta = np.pi/180
+rmax = 30 # 30 mm radius for dilute
+
 if(not os.path.exists(gsd_filename)):
     if(not os.path.exists(fname_init)):
-        m = 4
-        N_particles = 4 * m**2
-        spacing = 10
-        K = math.ceil(N_particles ** (1 / 2))
-        print('K=',K)
-        L = K * spacing
+        N_particles = 10
+        L = 2*rmax+1.0
         print('L=',L)
-        x = np.linspace(-L / 2, L / 2, K, endpoint=False)
-        X, Y = np.meshgrid(x,x)
-        X = X.flatten()
-        Y = Y.flatten()
+        X = np.random.rand(N_particles)
+        Y = np.random.rand(N_particles)
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         frame = gsd.hoomd.Frame()
@@ -161,10 +159,6 @@ simulation.operations.writers.append(
 gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
-
-dr = 0.1
-dtheta = np.pi/180
-rmax = 30 # 30 mm radius for dilute
 
 walls = [hoomd.wall.Cylinder(radius=rmax, axis=(0,0,1), inside=True)]
 shifted_lj_wall = hoomd.md.external.wall.ForceShiftedLJ(
