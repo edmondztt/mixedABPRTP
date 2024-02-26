@@ -51,8 +51,10 @@ public:
         grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
     }
 
-    void setGridSize(double rSize, double thetaSize){
-        grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
+    void setGridSize(int dr, int dtheta){
+        int Nr = static_cast<int>((rMax - rMin) / dr) + 1;
+        int Ntheta = = static_cast<int>((thetaMax - thetaMin) / dtheta) + 1;
+        grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
     }
 
     int getGridSize(){
