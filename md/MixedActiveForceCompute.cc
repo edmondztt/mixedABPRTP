@@ -681,11 +681,19 @@ void MixedActiveForceCompute::computeForces(uint64_t timestep){
     }
 
 void MixedActiveForceCompute::setConcentrationFile(const std::string& filename){
+    if (!m_grid_data) {
+        throw std::runtime_error("Grid data is not initialized.");
+    }
     m_grid_data->loadDataFromFile(filename);
 }
 
 void MixedActiveForceCompute::setGridSize(double rSize, double thetaSize){
+    if (!m_grid_data) {
+        throw std::runtime_error("Grid data is not initialized.");
+    }
+    printf("now setting the grid size for m_grid_data. before setting size is %g\n", m_grid_data.getGridSize());
     m_grid_data->setGridSize(rSize, thetaSize);
+    printf("now grid size is %g\n", m_grid_data.getGridSize());
 }
 
 namespace detail
