@@ -26,6 +26,11 @@ namespace hoomd
 namespace md
     {
 
+// Forward declaration is necessary to avoid circular includes between this and
+// MixedActiveRotationalDiffusionRunTumbleUpdater.h while making MixedActiveRotationalDiffusionRunTumbleUpdater a friend class
+// of MixedActiveForceCompute.
+class MixedActiveRotationalDiffusionRunTumbleUpdater;
+
 struct mixedactive_params{
     Scalar kT1;
     Scalar kT2;
@@ -82,11 +87,6 @@ struct mixedactive_params{
 #else
     __attribute__((aligned(16)));
 #endif
-
-// Forward declaration is necessary to avoid circular includes between this and
-// MixedActiveRotationalDiffusionRunTumbleUpdater.h while making MixedActiveRotationalDiffusionRunTumbleUpdater a friend class
-// of MixedActiveForceCompute.
-class MixedActiveRotationalDiffusionRunTumbleUpdater;
 
 //! Adds an active force to a number of particles
 /*! \ingroup computes
