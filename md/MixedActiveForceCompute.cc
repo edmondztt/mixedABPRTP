@@ -672,7 +672,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_tumble_rate.data[idx] = gamma;
         // printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
     }
-    printf("\n\n");
+    // printf("\n\n");
 }
 
 /*! This function applies rotational diffusion and sets forces for all active particles
