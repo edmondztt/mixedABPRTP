@@ -138,7 +138,6 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     {
     m_exec_conf->msg->notice(5) << "Destroying MixedActiveForceCompute" << std::endl;
 
-    delete[] m_;
     delete[] m_kT1;
     delete[] m_kT2;
     delete[] m_kH1;
