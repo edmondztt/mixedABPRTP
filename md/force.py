@@ -701,7 +701,7 @@ class MixedActive(Force):
         #     param_dict=TypeParameterDict(0.05, len_keys=1),
         # )
         
-        params = TypeParameter('params', 'types',
+        params = TypeParameter('params', 'particle_types',
                 TypeParameterDict(kH1=float, kH2=float, kT1=float, kT2=float, 
                                   kS1=float, kS2=float, Q0=float, Q1=float,
                                   U0=float, U1=float, gamma0=float, c0_PHD=float, noise_Q=float,
