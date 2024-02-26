@@ -106,42 +106,44 @@ public:
     }
 
     void loadDataFromFile(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + filename);
-    }
-
-    std::string line;
-    // Skip metadata lines
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] != '%') {
-            break; // Reached the data section
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filename);
         }
-    }
 
-    // Continue with the first line of data
-    do {
-        if (line.empty() || line[0] == '%') continue; // Skip any potential empty line or late metadata
-
-        std::istringstream iss(line);
-        double x, y, z;
-        iss >> x >> y >> z; // Read coordinates
-
-        // Convert (x, y) to polar coordinates (r, theta)
-        double r = sqrt(x * x + y * y);
-        double theta = atan2(y, x);
-        if (theta < 0) theta += 2 * M_PI; // Ensure theta is within [0, 2*pi)
-
-        // Read and set concentration values for each time point
-        double value;
-        int time = 0; // Assuming time starts at 0 and increments in fixed intervals as per the file format
-        while (iss >> value) {
-            this->setData(r, theta, time, value);
-            time += 10; // Increment time based on the assumption each column is 10 units apart
+        std::string line;
+        // Skip metadata lines
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] != '%') {
+                break; // Reached the data section
+            }
         }
-    } while (std::getline(file, line));
 
-    file.close();
+        // Continue with the first line of data
+        do {
+            if (line.empty() || line[0] == '%') continue; // Skip any potential empty line or late metadata
+
+            std::istringstream iss(line);
+            double x, y, z;
+            iss >> x >> y >> z; // Read coordinates
+
+            // Convert (x, y) to polar coordinates (r, theta)
+            double r = sqrt(x * x + y * y);
+            double theta = atan2(y, x);
+            if (theta < 0) theta += 2 * M_PI; // Ensure theta is within [0, 2*pi)
+
+            // Read and set concentration values for each time point
+            double value;
+            int time = 0; // Assuming time starts at 0 and increments in fixed intervals as per the file format
+            while (iss >> value) {
+                this->setData(r, theta, time, value);
+                time += 10; // Increment time based on the assumption each column is 10 units apart
+            }
+        } while (std::getline(file, line));
+
+        file.close();
+    }
+    
 };
 
 
