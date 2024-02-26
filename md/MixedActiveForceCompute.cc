@@ -691,9 +691,9 @@ void MixedActiveForceCompute::setGridSize(double rSize, double thetaSize){
     if (!m_grid_data) {
         throw std::runtime_error("Grid data is not initialized.");
     }
-    printf("now setting the grid size for m_grid_data. before setting size is %g\n", m_grid_data.getGridSize());
+    printf("now setting the grid size for m_grid_data. before setting size is %g\n", m_grid_data->getGridSize());
     m_grid_data->setGridSize(rSize, thetaSize);
-    printf("now grid size is %g\n", m_grid_data.getGridSize());
+    printf("now grid size is %g\n", m_grid_data->getGridSize());
 }
 
 namespace detail
