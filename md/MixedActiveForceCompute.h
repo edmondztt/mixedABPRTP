@@ -52,11 +52,14 @@ public:
         grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
     }
 
-    void setGridSize(double dr, double dtheta){
+    void setGridSize(double dr, double dtheta, double rmax){
+        rMax = rmax;
         int Nr = static_cast<int>((rMax - rMin) / dr) + 1;
         int Ntheta = static_cast<int>((thetaMax - thetaMin) / dtheta) + 1;
         printf("now within PolarDataGrid setGridSize: Nr=%d,Ntheta=%d\n", Nr, Ntheta);
         grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
+        deltaR = dr; 
+        deltaTheta = dtheta;
     }
 
     int getGridSize(){
@@ -69,7 +72,7 @@ public:
         int k = static_cast<int>((t - tMin) / deltaT);
 
         if (i < 0 || i >= rSize || j < 0 || j >= thetaSize || k < 0 || k >= tSize) {
-            throw std::out_of_range("Data point coordinates out of grid bounds.");
+            throw std::out_of_range("Data point coordinates out of grid bounds. rMin=%g, rMax=%g, dr=%g, theta min=%g, max=%g, dtheta=%g, rSize=%g, thetaSize=%g\n", rMin, rMax, deltaR, thetaMin, thetaMax, deltaTheta, rSize, thetaSize);
         }
 
         grid[i][j][k] = value;
@@ -115,6 +118,9 @@ public:
 
     void loadDataFromFile(const std::string& filename) {
         std::ifstream file(filename);
+        bool isOpen = file.is_open();
+        std::cout << "File open: " << isOpen << std::endl;
+
         if (!file.is_open()) {
             throw std::runtime_error("Could not open file: " + filename);
         }
