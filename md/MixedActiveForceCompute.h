@@ -75,7 +75,14 @@ struct mixedactive_params{
         return v;
         }
 #endif
-}
+};
+
+#if HOOMD_LONGREAL_SIZE == 32
+    __attribute__((aligned(8)));
+#else
+    __attribute__((aligned(16)));
+#endif
+
 // Forward declaration is necessary to avoid circular includes between this and
 // MixedActiveRotationalDiffusionRunTumbleUpdater.h while making MixedActiveRotationalDiffusionRunTumbleUpdater a friend class
 // of MixedActiveForceCompute.

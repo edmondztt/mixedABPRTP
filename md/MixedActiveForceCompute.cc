@@ -69,7 +69,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     ArrayHandle<Scalar> h_U(m_U,
                             access_location::host,
                             access_mode::overwrite);
-    for (unsigned int i = 0; i < m_U0.size(); i++)
+    for (unsigned int i = 0; i < m_U.size(); i++)
         h_U.data[i] = 20.0; // initialize velocities to all be 20 um/s
     // QH initialize
     GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
@@ -295,7 +295,7 @@ pybind11::dict MixedActiveForceCompute::getParams(std::string type){
     auto typ = m_pdata->getTypeByName(type);
     if (typ >= m_pdata->getNTypes())
         {
-        throw runtime_error("Invalid angle type.");
+        throw std::runtime_error("Invalid angle type.");
         }
 
     pybind11::dict params;
@@ -326,7 +326,7 @@ void MixedActiveForceCompute::setForces()
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_f_actVec(m_f_activeVec, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_t_actVec(m_t_activeVec, access_location::host, access_mode::read);
-    ArrayHandle<Scalar> h_U0(m_U0, access_location::host, access_mode::read);
+    ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::read);
     // 
     ArrayHandle<Scalar4> h_force(m_force, access_location::host, access_mode::overwrite);
     ArrayHandle<Scalar4> h_torque(m_torque, access_location::host, access_mode::overwrite);
@@ -337,7 +337,7 @@ void MixedActiveForceCompute::setForces()
     // sanity check
     assert(h_f_actVec.data != NULL);
     assert(h_t_actVec.data != NULL);
-    assert(h_U0.data != NULL);
+    assert(h_U.data != NULL);
     assert(h_orientation.data != NULL);
 
     // zero forces so we don't leave any forces set for indices that are no longer part of our group
@@ -349,13 +349,13 @@ void MixedActiveForceCompute::setForces()
         unsigned int idx = m_group->getMemberIndex(i);
         unsigned int type = __scalar_as_int(h_pos.data[idx].w);
 
-        Scalar U0 = h_U0.data[idx];
+        Scalar U = h_U.data[idx];
         vec3<Scalar> f(h_f_actVec.data[type].w * h_f_actVec.data[type].x,
                        h_f_actVec.data[type].w * h_f_actVec.data[type].y,
                        h_f_actVec.data[type].w * h_f_actVec.data[type].z);
         quat<Scalar> quati(h_orientation.data[idx]);
         vec3<Scalar> fi = rotate(quati, f);
-        h_force.data[idx] = vec_to_scalar4(U0 * fi, 0);
+        h_force.data[idx] = vec_to_scalar4(U * fi, 0);
 
         vec3<Scalar> t(h_t_actVec.data[type].w * h_t_actVec.data[type].x,
                        h_t_actVec.data[type].w * h_t_actVec.data[type].y,
