@@ -25,7 +25,6 @@ namespace md
 MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group)
     : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>()) {
     
-    m_dt = m_deltaT; // for now just update dynamical params every timestep; TODO: can change this later.
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
     m_f_activeVec.swap(tmp_f_activeVec);
@@ -568,13 +567,13 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
 }
 
 /********** begin aux methods for internal confidence calculations  ***********/
-void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ){
+void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
     switch (FLAG_Q) {
     case m_FLAG_QH: {
         k1 = m_kH1[typ];
         k2 = m_kH2[typ];
-        c_term = (c_new - c_old)/m_dt;
+        c_term = (c_new - c_old) / m_deltaT;
         c_term = (c_term>0) ? c_term : 0;
         break;
     }
@@ -589,7 +588,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_new, Scalar c_old, in
         printf("FLAG_Q must be either for QH or QT!\n");
         return;
     } 
-    Q += m_dt * ((-k1) * Q + k2 * c_term);
+    Q += m_deltaT * ((-k1) * Q + k2 * c_term);
     return;
 }
 
@@ -597,7 +596,7 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ
     Scalar k1, k2;
     k1 = m_kS1[typ];
     k2 = m_kS2[typ];
-    S += m_dt*((-k1) * S + k2*gamma);
+    S += m_deltaT*((-k1) * S + k2*gamma);
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
