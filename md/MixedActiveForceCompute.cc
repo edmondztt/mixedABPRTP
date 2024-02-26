@@ -615,13 +615,21 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     gamma = gamma0 * (1 - tanh(Q-Q0));
 }
 
-Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos){
-    return 0;
+Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
+    Scalar r, theta, t;
+    Scalar x, y;
+    x = pos[0]; y = pos[1];
+    t = m_deltaT * timestep;
+    r = sqrt(x * x + y * y);
+    theta = atan2(y, x);
+    if (theta < 0) theta += 2 * M_PI;
+    c = m_grid_data->getData(r, theta, t);
+    return c;
 }
 /************ end aux methods for internal confidence calculations ************/
 
 
-void MixedActiveForceCompute::update_dynamical_parameters(){
+void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     //  update the swim speed by rescaling f_actVec;
     //  update the tumble rate;
     //  array handles
@@ -649,7 +657,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
         c_old = h_c.data[idx];
         gamma = h_tumble_rate.data[idx];
         Scalar4 pos = h_pos.data[idx];
-        c_new = compute_c_new(pos);
+        c_new = compute_c_new(pos, timestep);
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
@@ -670,7 +678,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(){
     \param timestep Current timestep
 */
 void MixedActiveForceCompute::computeForces(uint64_t timestep){
-    update_dynamical_parameters();
+    update_dynamical_parameters(timestep);
     setForces(); // set forces for particles
 
 #ifdef ENABLE_HIP
@@ -690,9 +698,9 @@ void MixedActiveForceCompute::setGridSize(double dr, double dtheta, double rmax)
     if (!m_grid_data) {
         throw std::runtime_error("Grid data is not initialized.");
     }
-    printf("now setting the grid size for m_grid_data. before setting size is %d\n", m_grid_data->getGridSize());
+    printf("now setting the grid size for m_grid_data. before setting size is %ld\n", m_grid_data->getGridSize());
     m_grid_data->setGridSize(dr, dtheta, rmax);
-    printf("now grid size is %d\n", m_grid_data->getGridSize());
+    printf("now grid size is %ld\n", m_grid_data->getGridSize());
 }
 
 namespace detail

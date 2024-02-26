@@ -162,6 +162,16 @@ gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
 
+dr = 0.1
+dtheta = np.pi/180
+rmax = 30 # 30 mm radius for dilute
+
+walls = [hoomd.wall.Cylinder(radius=rmax, axis=(0,0,1), inside=True)]
+shifted_lj_wall = hoomd.md.external.wall.ForceShiftedLJ(
+    walls=walls)
+shifted_lj_wall.params['A'] = {
+    "epsilon": 10.0, "sigma": 1.0, "r_cut": 3.0}
+integrator.forces.append(shifted_lj_wall)
 
 init_time = time.time()
 last_output = init_time
@@ -169,9 +179,6 @@ last_output = init_time
 simulation.run(0)
 
 c_filename = "dilute_c_crosssection_agar.txt"
-dr = 0.1
-dtheta = np.pi/180
-rmax = 100
 mixed_active.set_grid_size(dr, dtheta, rmax)
 mixed_active.set_concentration_field_file(c_filename)
 
