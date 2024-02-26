@@ -623,8 +623,7 @@ Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
     r = sqrt(x * x + y * y);
     theta = atan2(y, x);
     if (theta < 0) theta += 2 * M_PI;
-    c = m_grid_data->getData(r, theta, t);
-    return c;
+    return m_grid_data->getData(r, theta, t);
 }
 /************ end aux methods for internal confidence calculations ************/
 
