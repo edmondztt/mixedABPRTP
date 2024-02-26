@@ -99,6 +99,20 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     for (unsigned int i = 0; i < m_S.size(); i++)
         h_S.data[i] = 0.0;
 
+    m_kT1 = new Scalar[m_pdata->getNTypes()];
+    m_kT2 = new Scalar[m_pdata->getNTypes()];
+    m_kH1 = new Scalar[m_pdata->getNTypes()];
+    m_kH2 = new Scalar[m_pdata->getNTypes()];
+    m_kS1 = new Scalar[m_pdata->getNTypes()];
+    m_kS2 = new Scalar[m_pdata->getNTypes()];
+    m_Q0 = new Scalar[m_pdata->getNTypes()]; // lower threshold for gamma
+    m_Q1 = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
+    m_noise_Q = new Scalar[m_pdata->getNTypes()];
+    m_U0 = new Scalar[m_pdata->getNTypes()];
+    m_U1 = new Scalar[m_pdata->getNTypes()];
+    m_gamma0 = new Scalar[m_pdata->getNTypes()];
+    m_c0_PHD = new Scalar[m_pdata->getNTypes()];
+
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
     if (m_exec_conf->isCUDAEnabled() && m_exec_conf->allConcurrentManagedAccess())
         {
@@ -123,6 +137,36 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
 MixedActiveForceCompute::~MixedActiveForceCompute()
     {
     m_exec_conf->msg->notice(5) << "Destroying MixedActiveForceCompute" << std::endl;
+
+    delete[] m_;
+    delete[] m_kT1;
+    delete[] m_kT2;
+    delete[] m_kH1;
+    delete[] m_kH2;
+    delete[] m_kS1;
+    delete[] m_kS2;
+    delete[] m_Q0; // lower threshold for gamma
+    delete[] m_Q1; // upper threshold for U
+    delete[] m_noise_Q;
+    delete[] m_U0;
+    delete[] m_U1;
+    delete[] m_gamma0;
+    delete[] m_c0_PHD;
+
+    m_kT1 = NULL;
+    m_kT2 = NULL;
+    m_kH1 = NULL;
+    m_kH2 = NULL;
+    m_kS1 = NULL;
+    m_kS2 = NULL;
+    m_Q0 = NULL; // lower threshold for gamma
+    m_Q1 = NULL; // upper threshold for U
+    m_noise_Q = NULL;
+    m_U0 = NULL;
+    m_U1 = NULL;
+    m_gamma0 = NULL;
+    m_c0_PHD = NULL;
+
     }
 
 void MixedActiveForceCompute::setMixedActiveForce(const std::string& type_name, pybind11::tuple v)
