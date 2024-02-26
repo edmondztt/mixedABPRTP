@@ -736,7 +736,7 @@ class MixedActive(Force):
     def set_concentration_field_file(self, fname):
         self._cpp_obj.setConcentrationFile(fname)
 
-    def set_grid_size(self, dr, dtheta):
+    def set_grid_size(self, dr, dtheta, rmax):
         if not self._attached:
             print("MixedActive force is not attached to the simulation.")
-        self._cpp_obj.setGridSize(dr, dtheta)
+        self._cpp_obj.setGridSize(dr, dtheta, rmax)
