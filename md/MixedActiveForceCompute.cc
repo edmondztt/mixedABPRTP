@@ -680,6 +680,14 @@ void MixedActiveForceCompute::computeForces(uint64_t timestep){
 #endif
     }
 
+void MixedActiveForceCompute::setConcentrationFile(const std::string& filename){
+    m_grid_data->loadDataFromFile(filename);
+}
+
+void MixedActiveForceCompute::setGridSize(double rSize, double thetaSize){
+    m_grid_data->setGridSize(rSize, thetaSize);
+}
+
 namespace detail
     {
 void export_MixedActiveForceCompute(pybind11::module& m)
@@ -694,6 +702,8 @@ void export_MixedActiveForceCompute(pybind11::module& m)
         .def("getActiveTorque", &MixedActiveForceCompute::getActiveTorque)
         .def("setParams", &MixedActiveForceCompute::setParamsPython)
         .def("getParams", &MixedActiveForceCompute::getParams)
+        .def("setGridSize", &MixedActiveForceCompute::setGridSize)
+        .def("setConcentrationFile", &MixedActiveForceCompute::setConcentrationFile)
         .def_property_readonly("filter",
                                [](MixedActiveForceCompute& force)
                                { return force.getGroup()->getFilter(); });

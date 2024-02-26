@@ -251,6 +251,10 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     /// Get the parameters for a given type
     virtual pybind11::dict getParams(std::string type);
 
+    void setConcentrationFile(const std::string& filename);
+    void setGridSize(double rSize, double thetaSize);
+
+
     std::shared_ptr<ParticleGroup>& getGroup(){
         return m_group;
         }

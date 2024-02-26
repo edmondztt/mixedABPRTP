@@ -732,3 +732,9 @@ class MixedActive(Force):
     def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread):
         return hoomd.md.update.MixedActiveRotationalDiffusionRunTumble(
             trigger, self, rotational_diffusion, tumble_angle_gauss_spread)
+    
+    def set_concentration_field_file(self, fname):
+        self._cpp_obj.setConcentrationFile(fname)
+
+    def set_grid_size(self, dr, dtheta):
+        self._cpp_obj.setGridSize(dr, dtheta)
