@@ -226,7 +226,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     public:
     //! Constructs the compute
     MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
-                       std::shared_ptr<ParticleGroup> group);
+                       std::shared_ptr<ParticleGroup> group, Scalar rMax);
 
     //! Destructor
     ~MixedActiveForceCompute();
@@ -341,8 +341,6 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     // MixedActiveRotationalDiffusionRunTumbleUpdater to call rotationalDiffusion.
     friend class MixedActiveRotationalDiffusionRunTumbleUpdater;
     };
-
-
 
     } // end namespace md
     } // end namespace hoomd

@@ -22,8 +22,8 @@ namespace md
 /*! \param rotation_diff rotational diffusion constant for all particles.
     \param tumble_rate
  */
-MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group)
-    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>()) {
+MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar rMax)
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>(rMax=rMax)) {
     
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
@@ -714,7 +714,7 @@ void export_MixedActiveForceCompute(pybind11::module& m)
     pybind11::class_<MixedActiveForceCompute, ForceCompute, std::shared_ptr<MixedActiveForceCompute>>(
         m,
         "MixedActiveForceCompute")
-        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>>())
+        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>>(), Scalar rMax)
         .def("setMixedActiveForce", &MixedActiveForceCompute::setMixedActiveForce)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)
