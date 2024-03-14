@@ -61,8 +61,21 @@ public:
         m_Nx = nx;
         m_Ny = ny;
         m_Nt = nt;
-        grid.resize(m_Nx, std::vector<std::vector<double>>(m_Ny, std::vector<double>(m_Nt, 0.0)));
-        grid_empty.resize(m_Nx, std::vector<bool>(m_Ny, true));
+        grid.resize(m_Nx);
+        for (auto& inner2DVector : grid) {
+            inner2DVector.resize(m_Ny);
+            for (auto& inner1DVector : inner2DVector)
+            {
+                inner1DVector.resize(m_Nt, 0.0);
+            }
+            
+        }
+        grid_empty.resize(m_Nx);
+        for (auto& innerVector : grid_empty)
+        {
+            innverVector.resize(m_Nt, true);
+        }
+        
     }
     unsigned long int getGridSize(){
         return grid.size();
