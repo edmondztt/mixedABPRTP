@@ -67,7 +67,7 @@ public:
         rSize = Nr;
         thetaSize = Ntheta;
         grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
-        grid_empty.resize(Nr, std::vector<std::vector<bool>>(Ntheta, true));
+        grid_empty.resize(Nr, std::vector<bool>(Ntheta, true));
     }
 
     unsigned long int getGridSize(){
