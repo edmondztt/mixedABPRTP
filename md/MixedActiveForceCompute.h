@@ -426,7 +426,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     public:
     //! Constructs the compute
     MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
-                       std::shared_ptr<ParticleGroup> group, Scalar rMax);
+                       std::shared_ptr<ParticleGroup> group, Scalar L);
 
     //! Destructor
     ~MixedActiveForceCompute();
@@ -469,7 +469,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     virtual pybind11::dict getParams(std::string type);
 
     void setConcentrationFile(const std::string& filename);
-    void setGridSize(double rSize, double thetaSize, double rmax);
+    void setGridSize(int Nx, int Ny, int Nt, double xMin, double xMax, double yMin, double yMax, double tMin, double tMax);
 
 
     std::shared_ptr<ParticleGroup>& getGroup(){
@@ -531,7 +531,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar* m_gamma0;
     Scalar* m_c0_PHD;
 
-    std::unique_ptr<PolarDataGrid> m_grid_data;
+    std::unique_ptr<RectGridData> m_grid_data;
 
     private:
     static constexpr int m_FLAG_QH = 1; // for QH
