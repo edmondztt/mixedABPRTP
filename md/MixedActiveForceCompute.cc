@@ -671,7 +671,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_S.data[idx] = S;
         h_U.data[idx] = U;
         h_tumble_rate.data[idx] = gamma;
-        if(timestep%1000==0)
+        if(timestep%10000==0)
             printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
     }
     // printf("\n\n");
