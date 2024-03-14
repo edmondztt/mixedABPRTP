@@ -31,9 +31,14 @@ namespace md
 // of MixedActiveForceCompute.
 class MixedActiveRotationalDiffusionRunTumbleUpdater;
 
+struct SurroundingPointIndex {
+    int i; // radial index
+    int j; // angular index
+};
 class PolarDataGrid {
 private:
     std::vector<std::vector<std::vector<double>>> grid; // 3D vector for data values
+    std::vector<std::vector<bool>> grid_empty; // 2D vector to mark if grid point has been initialized with c data. 1 if not.
     double rMin, thetaMin, tMin; // Minimum bounds for r, theta, and t
     double rMax, thetaMax, tMax; // Max bounds for r, theta, and t
     double deltaR, deltaTheta, deltaT; // Discretization steps for r, theta, and t
@@ -48,8 +53,8 @@ public:
         rSize = static_cast<int>((rMax - rMin) / deltaR) + 1;
         thetaSize = static_cast<int>((thetaMax - thetaMin) / deltaTheta) + 1;
         tSize = static_cast<int>((tMax - tMin) / deltaT) + 1;
-
         grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
+        grid_empty.resize(Nr, std::vector<std::vector<bool>>(Ntheta, true));
     }
 
     void setGridSize(double dr, double dtheta, double rmax){
@@ -62,6 +67,7 @@ public:
         rSize = Nr;
         thetaSize = Ntheta;
         grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
+        grid_empty.resize(Nr, std::vector<std::vector<bool>>(Ntheta, true));
     }
 
     unsigned long int getGridSize(){
@@ -77,8 +83,8 @@ public:
             printf("rMin=%g, rMax=%g, dr=%g, theta min=%g, max=%g, dtheta=%g, rSize=%d, thetaSize=%d\n", rMin, rMax, deltaR, thetaMin, thetaMax, deltaTheta, rSize, thetaSize);
             throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
-
         grid[i][j][k] = value;
+        grid_empty[i][j] = 0.0;
     }
 
     double getData(double r, double theta, double t) {
@@ -162,6 +168,29 @@ public:
         } while (std::getline(file, line));
 
         file.close();
+        // interpolate();
+        show_unfilled_grid();
+    }
+
+    void show_unfilled_grid(){
+        for (int i = 0; i < rSize; i++)
+        {
+            for (int j = 0; j < thetaSize; j++)
+            {
+                if(grid_empty[i][j]){
+                    double r, theta;
+                    r = deltaR * i;
+                    theta = deltaTheta * j;
+                    printf("grid point @r=%g,theta=%g is not initialized\n", r, theta);
+                }
+            }
+            
+        }
+        
+    }
+
+    bool needsInterpolation(int i, int j) {
+        return grid_empty[i][j];
     }
 
 };
