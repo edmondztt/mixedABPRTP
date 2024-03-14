@@ -84,7 +84,7 @@ public:
             throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
         grid[i][j][k] = value;
-        grid_empty[i][j] = 0.0;
+        grid_empty[i][j] = false;
     }
 
     double getData(double r, double theta, double t) {
