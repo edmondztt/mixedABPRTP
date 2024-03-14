@@ -181,7 +181,7 @@ last_output = init_time
 
 simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
-c_filename = "dilute_c_crosssection_agar.txt"
+c_filename = "new_dilute_c_crosssection_agar.txt"
 print("now read from c file")
 mixed_active.set_grid_size(dr, dtheta, rmax)
 mixed_active.set_concentration_field_file(c_filename)

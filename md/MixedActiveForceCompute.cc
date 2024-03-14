@@ -22,8 +22,8 @@ namespace md
 /*! \param rotation_diff rotational diffusion constant for all particles.
     \param tumble_rate
  */
-MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar rMax)
-    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>(0, rMax)) {
+MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L)
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)) {
     
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
@@ -615,14 +615,10 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
-    Scalar r, theta, t;
-    Scalar x, y;
+    Scalar x, y, t;
     x = pos.x; y = pos.y;
     t = m_deltaT * timestep;
-    r = sqrt(x * x + y * y);
-    theta = atan2(y, x);
-    if (theta < 0) theta += 2 * M_PI;
-    return m_grid_data->getData(r, theta, t);
+    return m_grid_data->getData(x, y, t);
 }
 /************ end aux methods for internal confidence calculations ************/
 

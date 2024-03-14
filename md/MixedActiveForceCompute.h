@@ -31,6 +31,174 @@ namespace md
 // of MixedActiveForceCompute.
 class MixedActiveRotationalDiffusionRunTumbleUpdater;
 
+
+class RectGridData{
+private:
+    std::vector<std::vector<std::vector<double>>> grid; // 3D vector for data values
+    std::vector<std::vector<bool>> grid_empty; // 2D vector to mark if grid point has been initialized with c data. 1 if not.
+    double xMin, yMin, tMin; // Minimum bounds
+    double xMax, yMax, tMax; // Max bounds for
+    double deltaX, deltaY, deltaT; // Discretization steps
+    int Nx, Ny, Nt; // Sizes of the grid in each dimension
+    std::vector<double> xcoord;
+    std::vector<double> ycoord;
+    std::vector<double> tcoord;
+
+public:
+    RectGridData(double xMin=-30, double xMax=30, double yMin=-30, double yMax=30, double tMin=0, double tMax=600, double deltaX=0.5, double deltaY=0.5, double deltaT=10): xMin(xMin), xMax(xMax), yMin(yMin), yMax(yMax), tMin(tMin), tMax(tMax), deltaX(deltaX), deltaY(deltaY), deltaT(deltaT){
+        Nx = static_cast<int> ((xMax - xMin)/deltaX)+1;
+        Ny = static_cast<int> ((yMax - yMin)/deltaY)+1;
+        Nt = static_cast<int> ((tMax - tMin)/deltaT)+1;
+        grid.resize(Nx, std::vector<std::vector<double>>(Ny, std::vector<double>(Nt, 0.0)));
+        grid_empty.resize(Nx, std::vector<bool>(Ny, true));
+    }
+    void setGridSize(int Nx, int Ny, int Nt, double xMin, double xMax, double yMin, double yMax, double tMin, double tMax){
+        // Nx, Ny, Nt are the number of points
+        printf("now within RectGridData setGridSize: Nx=%d,Ny=%d,Nt=%d\n", Nx, Ny,Nt);
+        deltaX = (xMax-xMin)/(Nx-1); 
+        deltaY = (yMax-yMin)/(Ny-1);
+        deltaT = (tMax-tMin)/(Nt-1);
+        Nx = Nx;
+        Ny = Ny;
+        Nt = Nt;
+        grid.resize(Nx, std::vector<std::vector<double>>(Ny, std::vector<double>(Nt, 0.0)));
+        grid_empty.resize(Nx, std::vector<bool>(Ny, true));
+    }
+    unsigned long int getGridSize(){
+        return grid.size();
+    }
+    void setData(int indx, int indy, int indt, double value) {
+        if (indx < 0 || indx >= Nx || indy < 0 || indy >= Ny || indt < 0 || indt >= Nt) {
+            printf("xMin=%g, xMax=%g, dx=%g, y min=%g, max=%g, dy=%g, Nx=%d, Ny=%d\n", xMin, xMax, deltaX, yMin, yMax, deltaY, Nx, Ny);
+            throw std::out_of_range("Data point coordinates out of grid bounds.");
+        }
+        grid[indx][indy][indt] = value;
+        grid_empty[indx][indy] = false;
+    }
+
+    double getData(double x, double y, double t) {
+        // Convert to grid indices
+        double ix = (x - xMin) / deltaX;
+        double iy = (y - yMin) / deltaY;
+        double it = (t - tMin) / deltaT;
+
+        // Find the bounding indices for interpolation
+        int ixLow = std::max(0, static_cast<int>(floor(ix)));
+        int ixHigh = std::min(Nx - 1, ixLow + 1);
+        int iyLow = static_cast<int>(floor(iy)) % Ny;
+        int iyHigh = (iyLow + 1) % Ny;
+        int itLow = std::max(0, static_cast<int>(floor(it)));
+        int itHigh = std::min(Nt - 1, itLow + 1);
+
+        // Compute weights for interpolation
+        double wx = ix - ixLow;
+        double wy = iy - iyLow;
+        double wT = it - itLow;
+
+        // Interpolate along r, y, and t
+        double value = 0.0;
+        for (int i : {ixLow, ixHigh}) {
+            for (int j : {iyLow, iyHigh}) {
+                for (int k : {itLow, itHigh}) {
+                    double weight = (i == ixLow ? 1 - wx : wx) *
+                                    (j == iyLow ? 1 - wy : wy) *
+                                    (k == itLow ? 1 - wT : wT);
+                    value += grid[i][j][k] * weight;
+                }
+            }
+        }
+        return value;
+    }
+    void show_unfilled_grid(){
+        for (int i = 0; i < Nx; i++)
+        {
+            for (int j = 0; j < Ny; j++)
+            {
+                if(grid_empty[i][j]){
+                    printf("grid point @x=%g,y=%g is not initialized\n", xcoord[i], ycoord[j]);
+                }
+            }
+            
+        }
+        
+    }
+    void loadDataFromFile(const std::string& filename) {
+        std::ifstream file(filename);
+        bool isOpen = file.is_open();
+        std::cout << "File open: " << isOpen << std::endl;
+
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filename);
+        }
+
+        std::string line;
+        // Skip metadata lines
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] != '%') {
+                break; // Reached the data section
+            }
+        }
+
+        // Continue with the first line of data
+        int nlines = 0;
+        int indx, indy, indt;
+        indx = 0; indt = 0;
+        do {
+            if (line.empty() || line[0] == '%') continue; // Skip any potential empty line or late metadata
+            std::istringstream iss(line);
+            double value;
+            indy = 0;
+            while (iss >> value) {
+                switch (nlines)
+                {
+                case 0:
+                    // 1st line is x coords
+                    xcoord.push_back(value);
+                    break;
+                case 1:
+                    // 2nd line is y coords
+                    ycoord.push_back(value);
+                    break;
+                case 2:
+                    // 3rd line is t coords
+                    tcoord.push_back(value);
+                    break;
+                default:
+                    // find current index
+                    setData(indx,indy,indt,value);
+                    indy++;
+                    if(indy==Ny){
+                        indy = 0;
+                        indx++;
+                        if(indx==Nx){
+                            indx = 0;
+                            indt++;
+                        }
+                    }
+                    break;
+                }
+            }
+            if (nlines==2)
+            {
+                // just finished reading x, y, t coords.
+                int Nx, Ny, Nt;
+                Nx = xcoord.size();
+                Ny = ycoord.size();
+                Nt = tcoord.size();
+                xMin = xcoord[0]; xMax = xcoord.back();
+                yMin = ycoord[0]; yMax = ycoord.back();
+                tMin = tcoord[0]; tMax = tcoord.back();
+                setGridSize(Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax);
+            }
+            nlines+=1;
+        } while (std::getline(file, line));
+
+        file.close();
+        // interpolate();
+        show_unfilled_grid();
+    }
+}
+
 struct SurroundingPointIndex {
     int i; // radial index
     int j; // angular index
@@ -42,7 +210,7 @@ private:
     double rMin, thetaMin, tMin; // Minimum bounds for r, theta, and t
     double rMax, thetaMax, tMax; // Max bounds for r, theta, and t
     double deltaR, deltaTheta, deltaT; // Discretization steps for r, theta, and t
-    int rSize, thetaSize, tSize; // Sizes of the grid in each dimension
+    int rSize, thetaSize, Nt; // Sizes of the grid in each dimension
 
 public:
     PolarDataGrid(double rMin = 0, double rMax = 10, double thetaMin = 0, 
@@ -52,8 +220,8 @@ public:
         : rMin(rMin), thetaMin(thetaMin), tMin(tMin), rMax(rMax), thetaMax(thetaMax), tMax(tMax), deltaR(deltaR), deltaTheta(deltaTheta), deltaT(deltaT) {
         rSize = static_cast<int>((rMax - rMin) / deltaR) + 1;
         thetaSize = static_cast<int>((thetaMax - thetaMin) / deltaTheta) + 1;
-        tSize = static_cast<int>((tMax - tMin) / deltaT) + 1;
-        grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
+        Nt = static_cast<int>((tMax - tMin) / deltaT) + 1;
+        grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(Nt, 0.0)));
         grid_empty.resize(rSize, std::vector<bool>(thetaSize, true));
     }
 
@@ -66,7 +234,7 @@ public:
         deltaTheta = dtheta;
         rSize = Nr;
         thetaSize = Ntheta;
-        grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(tSize, 0.0)));
+        grid.resize(Nr, std::vector<std::vector<double>>(Ntheta, std::vector<double>(Nt, 0.0)));
         grid_empty.resize(Nr, std::vector<bool>(Ntheta, true));
     }
 
@@ -79,7 +247,7 @@ public:
         int j = static_cast<int>((theta - thetaMin) / deltaTheta);
         int k = static_cast<int>((t - tMin) / deltaT);
 
-        if (i < 0 || i >= rSize || j < 0 || j >= thetaSize || k < 0 || k >= tSize) {
+        if (i < 0 || i >= rSize || j < 0 || j >= thetaSize || k < 0 || k >= Nt) {
             printf("rMin=%g, rMax=%g, dr=%g, theta min=%g, max=%g, dtheta=%g, rSize=%d, thetaSize=%d\n", rMin, rMax, deltaR, thetaMin, thetaMax, deltaTheta, rSize, thetaSize);
             throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
@@ -103,7 +271,7 @@ public:
         int ithetaLow = static_cast<int>(floor(itheta)) % thetaSize;
         int ithetaHigh = (ithetaLow + 1) % thetaSize;
         int itLow = std::max(0, static_cast<int>(floor(it)));
-        int itHigh = std::min(tSize - 1, itLow + 1);
+        int itHigh = std::min(Nt - 1, itLow + 1);
 
         // Compute weights for interpolation
         double wR = ir - irLow;
