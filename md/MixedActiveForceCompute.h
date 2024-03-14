@@ -69,7 +69,8 @@ public:
     }
     void setData(int indx, int indy, int indt, double value) {
         if (indx < 0 || indx >= Nx || indy < 0 || indy >= Ny || indt < 0 || indt >= Nt) {
-            printf("xMin=%g, xMax=%g, dx=%g, y min=%g, max=%g, dy=%g, Nx=%d, Ny=%d\n", xMin, xMax, deltaX, yMin, yMax, deltaY, Nx, Ny);
+            // printf("xMin=%g, xMax=%g, dx=%g, y min=%g, max=%g, dy=%g, Nx=%d, Ny=%d\n", xMin, xMax, deltaX, yMin, yMax, deltaY, Nx, Ny);
+            printf("indx=%d,indy=%d,indt=%d\n", indx, indy, indt);
             throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
         grid[indx][indy][indt] = value;
