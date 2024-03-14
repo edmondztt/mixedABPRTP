@@ -7,6 +7,7 @@ from random import randint
 from random import uniform
 import datetime, time
 import os
+import sys
 
 
 # matplotlib.style.use('ggplot')
@@ -60,7 +61,8 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 0.5
-runtime = 100
+runtime = float(sys.argv[1])
+print("runtime=",runtime)
 
 gsd_filename = 'test.gsd'
 fname_init = 'init.gsd'
