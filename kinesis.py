@@ -75,6 +75,7 @@ rmax = 30 # 30 mm radius for dilute
 N_particles = 2
 
 if(not os.path.exists(gsd_filename)):
+    print(gsd_filename, " does not exist. try init.gsd")
     if(not os.path.exists(fname_init)):
         L = 2*rmax+1.0
         print('L=',L)
@@ -95,6 +96,7 @@ if(not os.path.exists(gsd_filename)):
         filename=fname_init
     )
 else:
+    print("continue run from ", gsd_filename)
     simulation.create_state_from_gsd(
         filename=gsd_filename
     )
@@ -157,7 +159,7 @@ simulation.operations.writers.append(
     )
 )
 
-gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1_00),
+gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(100),
                       filename=gsd_filename)
 simulation.operations.writers.append(gsd_writer)
 
@@ -174,6 +176,7 @@ last_output = init_time
 simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
 c_filename = "dilute_c_crosssection_agar.txt"
+print("now read from c file")
 mixed_active.set_grid_size(dr, dtheta, rmax)
 mixed_active.set_concentration_field_file(c_filename)
 
