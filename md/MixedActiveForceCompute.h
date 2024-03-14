@@ -143,12 +143,12 @@ public:
         // Continue with the first line of data
         int nlines = 0;
         int indx, indy, indt;
-        indx = 0; indt = 0;
+        indy = 0; indt = 0;
         do {
             if (line.empty() || line[0] == '%') continue; // Skip any potential empty line or late metadata
             std::istringstream iss(line);
             double value;
-            indy = 0;
+            indx = 0;
             while (iss >> value) {
                 switch (nlines)
                 {
@@ -167,12 +167,12 @@ public:
                 default:
                     // find current index
                     setData(indx,indy,indt,value);
-                    indy++;
-                    if(indy==Ny){
-                        indy = 0;
-                        indx++;
-                        if(indx==Nx){
-                            indx = 0;
+                    indx++;
+                    if(indx==Nx){
+                        indx = 0;
+                        indy++;
+                        if(indy==Ny){
+                            indy = 0;
                             indt++;
                         }
                     }
