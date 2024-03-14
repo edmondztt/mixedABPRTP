@@ -61,8 +61,9 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 0.5
-runtime = float(sys.argv[1])
-print("runtime=",runtime)
+N_particles = int(sys.argv[1])
+runtime = float(sys.argv[2])
+print("N=",N_particles,", runtime=",runtime)
 
 gsd_filename = 'test.gsd'
 fname_init = 'init.gsd'
@@ -74,7 +75,6 @@ dr = 0.1
 dtheta = np.pi/180
 rmax = 30 # 30 mm radius for dilute
 
-N_particles = 2
 
 flag_continue = False
 if(not os.path.exists(gsd_filename)):
