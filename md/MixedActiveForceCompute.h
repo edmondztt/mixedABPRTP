@@ -54,7 +54,7 @@ public:
         thetaSize = static_cast<int>((thetaMax - thetaMin) / deltaTheta) + 1;
         tSize = static_cast<int>((tMax - tMin) / deltaT) + 1;
         grid.resize(rSize, std::vector<std::vector<double>>(thetaSize, std::vector<double>(tSize, 0.0)));
-        grid_empty.resize(rSize, std::vector<std::vector<bool>>(thetaSize, true));
+        grid_empty.resize(rSize, std::vector<bool>(thetaSize, true));
     }
 
     void setGridSize(double dr, double dtheta, double rmax){
