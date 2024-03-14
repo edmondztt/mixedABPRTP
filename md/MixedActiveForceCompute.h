@@ -179,13 +179,25 @@ public:
                 }
             }
             if (nlines==0){
-                std::cout << "read xcoords: " << xcoord << std::endl;
+                std::cout << "read xcoords: ";
+                for (const double& value : xcoord) {
+                    std::cout << value << " ";
+                }
+                std::cout << std::endl;
             }
             if (nlines==1){
-                std::cout << "read ycoords: " << ycoord << std::endl;
+                std::cout << "read ycoords: ";
+                for (const double& value : ycoord) {
+                    std::cout << value << " ";
+                }
+                std::cout << std::endl;
             }
             if (nlines==2){
-                std::cout << "read tcoords: " << tcoord << std::endl;
+                std::cout << "read tcoords: ";
+                for (const double& value : tcoord) {
+                    std::cout << value << " ";
+                }
+                std::cout << std::endl;
             }
             if (nlines==2)
             {
