@@ -178,6 +178,15 @@ public:
                     break;
                 }
             }
+            if (nlines==0){
+                std::cout << "read xcoords: " << xcoord << std::endl;
+            }
+            if (nlines==1){
+                std::cout << "read ycoords: " << ycoord << std::endl;
+            }
+            if (nlines==2){
+                std::cout << "read tcoords: " << tcoord << std::endl;
+            }
             if (nlines==2)
             {
                 // just finished reading x, y, t coords.
@@ -188,6 +197,7 @@ public:
                 xMin = xcoord[0]; xMax = xcoord.back();
                 yMin = ycoord[0]; yMax = ycoord.back();
                 tMin = tcoord[0]; tMax = tcoord.back();
+                printf("now just finished reading c file. set grid size: Nx=%d,Ny=%d,Nt=%d, xmin=%g,xmax=%g,ymin=%g,ymax=%g,tmin=%g,tmax=%g\n", Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax);
                 setGridSize(Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax);
             }
             nlines+=1;
