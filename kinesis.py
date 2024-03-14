@@ -74,7 +74,9 @@ rmax = 30 # 30 mm radius for dilute
 
 N_particles = 2
 
+flag_continue = False
 if(not os.path.exists(gsd_filename)):
+    flag_continue = False
     print(gsd_filename, " does not exist. try init.gsd")
     if(not os.path.exists(fname_init)):
         L = 2*rmax+1.0
@@ -96,6 +98,7 @@ if(not os.path.exists(gsd_filename)):
         filename=fname_init
     )
 else:
+    flag_continue = True
     print("continue run from ", gsd_filename)
     simulation.create_state_from_gsd(
         filename=gsd_filename
@@ -173,7 +176,8 @@ integrator.forces.append(shifted_lj_wall)
 init_time = time.time()
 last_output = init_time
 
-simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
+if not flag_continue:
+    simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
 c_filename = "dilute_c_crosssection_agar.txt"
 print("now read from c file")
