@@ -176,8 +176,8 @@ integrator.forces.append(shifted_lj_wall)
 init_time = time.time()
 last_output = init_time
 
-if not flag_continue:
-    simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
+
+simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
 c_filename = "dilute_c_crosssection_agar.txt"
 print("now read from c file")
