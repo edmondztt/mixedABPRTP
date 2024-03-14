@@ -631,7 +631,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     //  update the swim speed by rescaling f_actVec;
     //  update the tumble rate;
     //  array handles
-    printf("now at timestep %d: update dynamical parameters\n", timestep);
+    // printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_QH(m_QH, access_location::host, access_mode::readwrite);
@@ -671,7 +671,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_S.data[idx] = S;
         h_U.data[idx] = U;
         h_tumble_rate.data[idx] = gamma;
-        // printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
+        if(timestep%100==0)
+            printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
     }
     // printf("\n\n");
 }
