@@ -714,7 +714,7 @@ void export_MixedActiveForceCompute(pybind11::module& m)
     pybind11::class_<MixedActiveForceCompute, ForceCompute, std::shared_ptr<MixedActiveForceCompute>>(
         m,
         "MixedActiveForceCompute")
-        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>>(), Scalar rMax)
+        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar rMax>())
         .def("setMixedActiveForce", &MixedActiveForceCompute::setMixedActiveForce)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)
