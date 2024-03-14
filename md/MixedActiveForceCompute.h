@@ -73,7 +73,7 @@ public:
         grid_empty.resize(m_Nx);
         for (auto& innerVector : grid_empty)
         {
-            innverVector.resize(m_Nt, true);
+            innerVector.resize(m_Nt, true);
         }
         
     }
