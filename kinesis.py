@@ -61,11 +61,21 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 0.5
-N_particles = int(sys.argv[1])
+N_particles = sys.argv[1]
+N_particles = int(N_particles)
 runtime = float(sys.argv[2])
-print("N=",N_particles,", runtime=",runtime)
+Q0 = float(sys.argv[3])
+Q1 = float(sys.argv[4])
+kT2 = float(sys.argv[5])
+kH2 = float(sys.argv[6])
+kS2 = float(sys.argv[7])
 
-gsd_filename = 'test.gsd'
+noise_Q = 0.01
+print("N=",N_particles,", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
+
+gsd_filename = "data/kinesis_N{0}_runtime{1}_Q0{2}_Q1{3}_kT2{4}_kH2{5}_kS2{6}.gsd".format(N_particles, runtime,
+    Q0, Q1, kT2, kH2, kS2)
+print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
 cpu = hoomd.device.CPU()
@@ -79,8 +89,9 @@ rmax = 30 # 30 mm radius for dilute
 flag_continue = False
 if(not os.path.exists(gsd_filename)):
     flag_continue = False
-    print(gsd_filename, " does not exist. try init.gsd")
+    print(gsd_filename, " does not exist. try ", fname_init)
     if(not os.path.exists(fname_init)):
+        print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
         X = np.random.rand(N_particles)
@@ -94,11 +105,12 @@ if(not os.path.exists(gsd_filename)):
         frame.configuration.box = [L, L, 0, 0, 0, 0]
         frame.particles.types = ['A']
         frame.particles.orientation = rand_unit_quaternion(N_particles)
-        with gsd.hoomd.open(name=fname_init, mode='x') as f:
-            f.append(frame)
-    simulation.create_state_from_gsd(
-        filename=fname_init
-    )
+        print("created {N:d} particles".format(N=len(frame.particles.position)))
+        simulation.create_state_from_snapshot(frame)
+    else:
+        simulation.create_state_from_gsd(
+            filename=fname_init
+        )
 else:
     flag_continue = True
     print("continue run from ", gsd_filename)
@@ -107,11 +119,7 @@ else:
     )
 
 integrator = hoomd.md.Integrator(dt=dt)
-cell = hoomd.md.nlist.Cell(buffer=0.4)
-lj = hoomd.md.pair.LJ(nlist=cell)
-lj.params[('A', 'A')] = dict(epsilon=0, sigma=0.1)
-lj.r_cut[('A', 'A')] = 0.1
-# integrator.forces.append(lj)
+
 overdamped_viscous = hoomd.md.methods.OverdampedViscous(
     filter=hoomd.filter.All())
 integrator.methods.append(overdamped_viscous)
@@ -124,8 +132,8 @@ integrator.methods.append(overdamped_viscous)
 mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), rMax=30)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=1.0/600, kT2=1, kH1 = 0.1, kH2=1.0,
-        kS1 = 1.0/30, kS2 = 0.1, Q0=0.3, Q1=0.7, noise_Q = 0.03, U0=0.2, U1=0.2, gamma0=1 / 10.0, c0_PHD = 0.1e-5)
+mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 0.1, kH2=kH2,
+        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.15, gamma0=1 / 10.0, c0_PHD = 0.1e-5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
 # mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.
@@ -156,7 +164,7 @@ integrator.forces.append(mixed_active)
 simulation.operations.integrator = integrator
 
 
-update_every_n = 30
+update_every_n = 10
 simulation.operations.writers.append(
     hoomd.write.CustomWriter(
         action = print_sim_state(),
@@ -185,4 +193,6 @@ c_filename = "new_dilute_c_crosssection_agar.txt"
 print("now read from c file")
 mixed_active.set_concentration_field_file(c_filename)
 
-simulation.run(int(runtime/dt))
+nsteps = int(runtime/dt)
+print("run for {0} timesteps".format(nsteps))
+simulation.run(nsteps)
