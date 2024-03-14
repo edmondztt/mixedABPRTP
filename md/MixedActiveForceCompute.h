@@ -149,8 +149,8 @@ public:
             std::istringstream iss(line);
             double value;
             indx = 0;
+            printf("now at line #%d\n", nlines);
             while (iss >> value) {
-                printf("now at line #%d\n", nlines);
                 switch (nlines)
                 {
                 case 0:
