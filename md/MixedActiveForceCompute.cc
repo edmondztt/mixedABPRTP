@@ -631,6 +631,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     //  update the swim speed by rescaling f_actVec;
     //  update the tumble rate;
     //  array handles
+    printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_QH(m_QH, access_location::host, access_mode::readwrite);
@@ -692,6 +693,7 @@ void MixedActiveForceCompute::setConcentrationFile(const std::string& filename){
     if (!m_grid_data) {
         throw std::runtime_error("Grid data is not initialized.");
     }
+    printf("now load concentration data from file...\n");
     m_grid_data->loadDataFromFile(filename);
 }
 
