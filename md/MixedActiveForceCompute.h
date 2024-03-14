@@ -153,6 +153,9 @@ public:
             double value;
             int time = 0; // Assuming time starts at 0 and increments in fixed intervals as per the file format
             while (iss >> value) {
+                if(r<0.5 && theta>5 && time==100){
+                    printf("now reading c: @r=%g,theta=%g,time=100: c=%g\n",value);
+                }
                 this->setData(r, theta, time, value);
                 time += 10; // Increment time based on the assumption each column is 10 units apart
             }
