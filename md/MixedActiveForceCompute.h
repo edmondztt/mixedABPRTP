@@ -150,6 +150,7 @@ public:
             double value;
             indx = 0;
             while (iss >> value) {
+                printf("now at line #%d\n", nlines);
                 switch (nlines)
                 {
                 case 0:
