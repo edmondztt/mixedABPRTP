@@ -23,7 +23,7 @@ namespace md
     \param tumble_rate
  */
 MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar rMax)
-    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>(rMax=rMax)) {
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<PolarDataGrid>(0, rMax)) {
     
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
