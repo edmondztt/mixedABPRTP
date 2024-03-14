@@ -197,7 +197,7 @@ public:
         // interpolate();
         show_unfilled_grid();
     }
-}
+};
 
 struct SurroundingPointIndex {
     int i; // radial index
