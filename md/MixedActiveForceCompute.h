@@ -162,7 +162,7 @@ public:
             std::istringstream iss(line);
             double value;
             indx = 0;
-            printf("now at line #%d\n", nlines);
+            // printf("now at line #%d\n", nlines);
             while (iss >> value) {
                 switch (nlines)
                 {
