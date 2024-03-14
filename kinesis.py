@@ -111,7 +111,7 @@ cell = hoomd.md.nlist.Cell(buffer=0.4)
 lj = hoomd.md.pair.LJ(nlist=cell)
 lj.params[('A', 'A')] = dict(epsilon=0, sigma=0.1)
 lj.r_cut[('A', 'A')] = 0.1
-integrator.forces.append(lj)
+# integrator.forces.append(lj)
 overdamped_viscous = hoomd.md.methods.OverdampedViscous(
     filter=hoomd.filter.All())
 integrator.methods.append(overdamped_viscous)
