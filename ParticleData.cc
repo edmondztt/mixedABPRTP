@@ -4163,7 +4163,7 @@ void export_SnapshotParticleData(pybind11::module& m)
         .def_property_readonly("body", &SnapshotParticleData<float>::getBodyNP)
         .def_property_readonly("orientation", &SnapshotParticleData<float>::getOrientationNP)
         .def_property_readonly("moment_inertia", &SnapshotParticleData<float>::getMomentInertiaNP)
-        .def_property_readonly("confidence", &SnapshotParticleData<float>::getConfidence)
+        .def_property_readonly("confidence", &SnapshotParticleData<float>::getConfidenceNP)
         .def_property_readonly("angmom", &SnapshotParticleData<float>::getAngmomNP)
         .def_property("types",
                       &SnapshotParticleData<float>::getTypes,
