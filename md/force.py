@@ -677,10 +677,3 @@ class MixedActive(Force):
             print("MixedActive force is not attached to the simulation.")
         self._cpp_obj.setGridSize(Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax)
         
-    @log(category="particle", requires_run=True)
-    def confidence(self):
-        """(*N_particles*, 3) `numpy.ndarray` of ``float``: The \
-        confidence :math:`QT_i,QH_i,S_i` of each particle.
-        """
-        self._cpp_obj.compute(self._simulation.timestep)
-        return self._cpp_obj.getConfidence()
