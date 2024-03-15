@@ -2576,6 +2576,9 @@ unsigned int ParticleData::addParticle(unsigned int type)
         ArrayHandle<Scalar3> h_inertia(getMomentsOfInertiaArray(),
                                        access_location::host,
                                        access_mode::readwrite);
+        ArrayHandle<Scalar3> h_confidence(getConfidences(),
+                                       access_location::host,
+                                       access_mode::readwrite);
         ArrayHandle<unsigned int> h_body(getBodies(),
                                          access_location::host,
                                          access_mode::readwrite);
@@ -2598,6 +2601,7 @@ unsigned int ParticleData::addParticle(unsigned int type)
         h_image.data[idx] = make_int3(0, 0, 0);
         h_angmom.data[idx] = make_scalar4(0, 0, 0, 0);
         h_inertia.data[idx] = make_scalar3(0, 0, 0);
+        h_confidence.data[idx] = make_scalar3(0, 0, 0);
         h_body.data[idx] = NO_BODY;
         h_orientation.data[idx] = make_scalar4(1.0, 0.0, 0.0, 0.0);
         h_tag.data[idx] = tag;

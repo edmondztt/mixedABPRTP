@@ -631,7 +631,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     // printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar3> h_QS(m_pdata->getConfidences, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar3> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_c(m_c, access_location::host, access_mode::readwrite);
     
