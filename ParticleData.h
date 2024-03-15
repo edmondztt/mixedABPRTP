@@ -214,6 +214,7 @@ template<class Real> struct PYBIND11_EXPORT SnapshotParticleData
     static pybind11::object getOrientationNP(pybind11::object self);
     //! Get moment of inertia as a numpy array
     static pybind11::object getMomentInertiaNP(pybind11::object self);
+    static pybind11::object getConfidenceNP(pybind11::object self);
     //! Get angular momentum as a numpy array
     static pybind11::object getAngmomNP(pybind11::object self);
 
