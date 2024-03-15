@@ -616,9 +616,9 @@ class Constant(Force):
 
 class MixedActive(Force):
 
-    def __init__(self, filter, rMax):
+    def __init__(self, filter, L):
         super().__init__()
-        self.rMax = rMax
+        self.L = L
         # store metadata
         param_dict = ParameterDict(filter=ParticleFilter)
         param_dict["filter"] = filter
@@ -663,7 +663,7 @@ class MixedActive(Force):
             my_class = _md.MixedActiveForceComputeGPU
 
         self._cpp_obj = my_class(sim.state._cpp_sys_def,
-                                 sim.state._get_group(self.filter), self.rMax)
+                                 sim.state._get_group(self.filter), self.L)
 
     def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread):
         return hoomd.md.update.MixedActiveRotationalDiffusionRunTumble(
@@ -672,7 +672,15 @@ class MixedActive(Force):
     def set_concentration_field_file(self, fname):
         self._cpp_obj.setConcentrationFile(fname)
 
-    def set_grid_size(self, dr, dtheta, rmax):
+    def set_grid_size(self, Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax):
         if not self._attached:
             print("MixedActive force is not attached to the simulation.")
-        self._cpp_obj.setGridSize(dr, dtheta, rmax)
+        self._cpp_obj.setGridSize(Nx, Ny, Nt, xMin, xMax, yMin, yMax, tMin, tMax)
+        
+    @log(category="particle", requires_run=True)
+    def confidence(self):
+        """(*N_particles*, 3) `numpy.ndarray` of ``float``: The \
+        confidence :math:`QT_i,QH_i,S_i` of each particle.
+        """
+        self._cpp_obj.compute(self._simulation.timestep)
+        return self._cpp_obj.getConfidence()

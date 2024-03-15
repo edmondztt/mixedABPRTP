@@ -673,6 +673,31 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     // printf("\n\n");
 }
 
+pybind11::object MixedActiveForceCompute::getConfidencePython()
+    {
+    std::vector<size_t> dims(2);
+    dims[0] = m_pdata->getNGlobal();
+    dims[1] = 3;
+
+    std::vector<vec3<double>> global_force(dims[0]);
+
+    // sort forces by particle tag
+    std::vector<vec3<double>> local_force(m_pdata->getN());
+    ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+    ArrayHandle<unsigned int> h_rtag(m_pdata->getRTags(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_force(m_force, access_location::host, access_mode::read);
+    sortLocalTags();
+    for (unsigned int i = 0; i < m_pdata->getN(); i++)
+        {
+        local_force[i].x = h_force.data[h_rtag.data[m_local_tag[i]]].x;
+        local_force[i].y = h_force.data[h_rtag.data[m_local_tag[i]]].y;
+        local_force[i].z = h_force.data[h_rtag.data[m_local_tag[i]]].z;
+        }
+    global_force = std::move(local_force);
+    return pybind11::array(dims, (double*)global_force.data());
+
+    }
+
 /*! This function applies rotational diffusion and sets forces for all active particles
     \param timestep Current timestep
 */
@@ -719,6 +744,7 @@ void export_MixedActiveForceCompute(pybind11::module& m)
         .def("getParams", &MixedActiveForceCompute::getParams)
         .def("setGridSize", &MixedActiveForceCompute::setGridSize)
         .def("setConcentrationFile", &MixedActiveForceCompute::setConcentrationFile)
+        .def("getConfidence", &MixedActiveForceCompute::getConfidencePython)
         .def_property_readonly("filter",
                                [](MixedActiveForceCompute& force)
                                { return force.getGroup()->getFilter(); });

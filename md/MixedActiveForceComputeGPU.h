@@ -1,10 +1,10 @@
 // Copyright (c) 2009-2023 The Regents of the University of Michigan.
 // Part of HOOMD-blue, released under the BSD 3-Clause License.
 
-#include "ActiveForceCompute.h"
+#include "MixedActiveForceCompute.h"
 #include "hoomd/Autotuner.h"
 
-/*! \file ActiveForceComputeGPU.h
+/*! \file MixedActiveForceComputeGPU.h
     \brief Declares a class for computing active forces on the GPU
 */
 
@@ -14,8 +14,8 @@
 
 #include <pybind11/pybind11.h>
 
-#ifndef __ACTIVEFORCECOMPUTE_GPU_H__
-#define __ACTIVEFORCECOMPUTE_GPU_H__
+#ifndef __MIXEDACTIVEFORCECOMPUTE_GPU_H__
+#define __MIXEDACTIVEFORCECOMPUTE_GPU_H__
 
 namespace hoomd
     {
@@ -24,12 +24,12 @@ namespace md
 //! Adds an active force to a number of particles on the GPU
 /*! \ingroup computes
  */
-class PYBIND11_EXPORT ActiveForceComputeGPU : public ActiveForceCompute
+class PYBIND11_EXPORT MixedActiveForceComputeGPU : public MixedActiveForceCompute
     {
     public:
     //! Constructs the compute
-    ActiveForceComputeGPU(std::shared_ptr<SystemDefinition> sysdef,
-                          std::shared_ptr<ParticleGroup> group);
+    MixedActiveForceComputeGPU(std::shared_ptr<SystemDefinition> sysdef,
+                          std::shared_ptr<ParticleGroup> group, Scalar L);
 
     protected:
     std::shared_ptr<Autotuner<1>> m_tuner_force;     //!< Autotuner for block size (force kernel)
@@ -40,6 +40,14 @@ class PYBIND11_EXPORT ActiveForceComputeGPU : public ActiveForceCompute
 
     //! Orientational diffusion for spherical particles
     virtual void rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep);
+    //! tumble
+    virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
+    //! whether should tumble now
+    bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
+
+    //! update the speed and tumble rate
+    virtual void update_dynamical_parameters(uint64_t timestep);
+
     };
 
     } // end namespace md

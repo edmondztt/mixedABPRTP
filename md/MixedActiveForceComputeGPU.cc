@@ -1,15 +1,15 @@
 // Copyright (c) 2009-2023 The Regents of the University of Michigan.
 // Part of HOOMD-blue, released under the BSD 3-Clause License.
 
-#include "ActiveForceComputeGPU.h"
-#include "ActiveForceComputeGPU.cuh"
+#include "MixedActiveForceComputeGPU.h"
+#include "MixedActiveForceComputeGPU.cuh"
 
 #include <vector>
 
 using namespace std;
 
-/*! \file ActiveForceComputeGPU.cc
-    \brief Contains code for the ActiveForceComputeGPU class
+/*! \file MixedActiveForceComputeGPU.cc
+    \brief Contains code for the MixedActiveForceComputeGPU class
 */
 
 namespace hoomd
@@ -24,25 +24,20 @@ namespace md
    orientation to log the active force vector. Not recommended for anisotropic particles \param
    rotation_diff rotational diffusion constant for all particles.
 */
-ActiveForceComputeGPU::ActiveForceComputeGPU(std::shared_ptr<SystemDefinition> sysdef,
-                                             std::shared_ptr<ParticleGroup> group)
-    : ActiveForceCompute(sysdef, group)
+MixedActiveForceComputeGPU::MixedActiveForceComputeGPU(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L)
+    : MixedActiveForceCompute(sysdef, group, m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)))
     {
     if (!m_exec_conf->isCUDAEnabled())
         {
         m_exec_conf->msg->error()
-            << "Creating a ActiveForceComputeGPU with no GPU in the execution configuration"
+            << "Creating a MixedActiveForceComputeGPU with no GPU in the execution configuration"
             << endl;
-        throw std::runtime_error("Error initializing ActiveForceComputeGPU");
+        throw std::runtime_error("Error initializing MixedActiveForceComputeGPU");
         }
 
     // initialize autotuner
-    m_tuner_force.reset(new Autotuner<1>({AutotunerBase::makeBlockSizeRange(m_exec_conf)},
-                                         this->m_exec_conf,
-                                         "active_force"));
-    m_tuner_diffusion.reset(new Autotuner<1>({AutotunerBase::makeBlockSizeRange(m_exec_conf)},
-                                             this->m_exec_conf,
-                                             "active_diffusion"));
+    m_tuner_force.reset(new Autotuner<1>({AutotunerBase::makeBlockSizeRange(m_exec_conf)},this->m_exec_conf,"active_force"));
+    m_tuner_diffusion.reset(new Autotuner<1>({AutotunerBase::makeBlockSizeRange(m_exec_conf)},this->m_exec_conf,"active_diffusion"));
     m_autotuners.insert(m_autotuners.end(), {m_tuner_force, m_tuner_diffusion});
 
     // unsigned int N = m_pdata->getNGlobal();
@@ -73,7 +68,7 @@ ActiveForceComputeGPU::ActiveForceComputeGPU(std::shared_ptr<SystemDefinition> s
 
 /*! This function sets appropriate active forces and torques on all active particles.
  */
-void ActiveForceComputeGPU::setForces()
+void MixedActiveForceComputeGPU::setForces()
     {
     //  array handles
     ArrayHandle<Scalar4> d_f_actVec(m_f_activeVec, access_location::device, access_mode::read);
@@ -125,7 +120,7 @@ void ActiveForceComputeGPU::setForces()
  * force vector does not change
     \param timestep Current timestep
 */
-void ActiveForceComputeGPU::rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep)
+void MixedActiveForceComputeGPU::rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep)
     {
     //  array handles
     ArrayHandle<Scalar4> d_f_actVec(m_f_activeVec, access_location::device, access_mode::readwrite);
@@ -170,10 +165,10 @@ namespace detail
     {
 void export_ActiveForceComputeGPU(pybind11::module& m)
     {
-    pybind11::class_<ActiveForceComputeGPU,
+    pybind11::class_<MixedActiveForceComputeGPU,
                      ActiveForceCompute,
-                     std::shared_ptr<ActiveForceComputeGPU>>(m, "ActiveForceComputeGPU")
-        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>>());
+                     std::shared_ptr<MixedActiveForceComputeGPU>>(m, "MixedActiveForceComputeGPU")
+        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar>());
     }
 
     } // end namespace detail
