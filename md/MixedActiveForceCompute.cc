@@ -69,32 +69,33 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     for (unsigned int i = 0; i < m_U.size(); i++)
         h_U.data[i] = 20.0; // initialize velocities to all be 20 um/s
     // QH initialize
-    GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
-    m_QH.swap(tmp_QH);
-    TAG_ALLOCATION(m_QH);
-    ArrayHandle<Scalar> h_QH(m_QH,
-                            access_location::host,
-                            access_mode::overwrite);
-    for (unsigned int i = 0; i < m_QH.size(); i++)
-        h_QH.data[i] = 0.0;
-    // QT initialize
-    GlobalVector<Scalar> tmp_QT(max_num_particles, m_exec_conf);
-    m_QT.swap(tmp_QT);
-    TAG_ALLOCATION(m_QT);
-    ArrayHandle<Scalar> h_QT(m_QT,
-                            access_location::host,
-                            access_mode::overwrite);
-    for (unsigned int i = 0; i < m_QT.size(); i++)
-        h_QT.data[i] = 0.0;
-    // S initialize
-    GlobalVector<Scalar> tmp_S(max_num_particles, m_exec_conf);
-    m_S.swap(tmp_S);
-    TAG_ALLOCATION(m_S);
-    ArrayHandle<Scalar> h_S(m_S,
-                            access_location::host,
-                            access_mode::overwrite);
-    for (unsigned int i = 0; i < m_S.size(); i++)
-        h_S.data[i] = 0.0;
+    // now these are moved to particle data
+    // GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
+    // m_QH.swap(tmp_QH);
+    // TAG_ALLOCATION(m_QH);
+    // ArrayHandle<Scalar> h_QH(m_QH,
+    //                         access_location::host,
+    //                         access_mode::overwrite);
+    // for (unsigned int i = 0; i < m_QH.size(); i++)
+    //     h_QH.data[i] = 0.0;
+    // // QT initialize
+    // GlobalVector<Scalar> tmp_QT(max_num_particles, m_exec_conf);
+    // m_QT.swap(tmp_QT);
+    // TAG_ALLOCATION(m_QT);
+    // ArrayHandle<Scalar> h_QT(m_QT,
+    //                         access_location::host,
+    //                         access_mode::overwrite);
+    // for (unsigned int i = 0; i < m_QT.size(); i++)
+    //     h_QT.data[i] = 0.0;
+    // // S initialize
+    // GlobalVector<Scalar> tmp_S(max_num_particles, m_exec_conf);
+    // m_S.swap(tmp_S);
+    // TAG_ALLOCATION(m_S);
+    // ArrayHandle<Scalar> h_S(m_S,
+    //                         access_location::host,
+    //                         access_mode::overwrite);
+    // for (unsigned int i = 0; i < m_S.size(); i++)
+    //     h_S.data[i] = 0.0;
     
     GlobalVector<Scalar> tmp_c(max_num_particles, m_exec_conf);
     m_c.swap(tmp_c);
@@ -630,9 +631,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     // printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar> h_QH(m_QH, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar> h_QT(m_QT, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar> h_S(m_S, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar> h_QS(m_pdata->getConfidences, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_c(m_c, access_location::host, access_mode::readwrite);
     
@@ -642,12 +641,12 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     {
         unsigned int idx = m_group->getMemberIndex(i);
         unsigned int typ = __scalar_as_int(h_pos.data[idx].w);
-        S = h_S.data[idx];
+        S = h_QS.data[idx].z;
         if(S>=1){
             continue;
         }
-        QH = h_QH.data[idx];
-        QT = h_QT.data[idx];
+        QH = h_QS.data[idx].x;
+        QT = h_QS.data[idx].y;
         U = h_U.data[idx];
         c_old = h_c.data[idx];
         gamma = h_tumble_rate.data[idx];
@@ -662,9 +661,9 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         update_U(U, QH + QT, typ);
         // now update the device values
         h_c.data[idx] = c_new;
-        h_QH.data[idx] = QH;
-        h_QT.data[idx] = QT;
-        h_S.data[idx] = S;
+        h_QS.data[idx].x = QH;
+        h_QS.data[idx].y = QT;
+        h_QS.data[idx].z = S;
         h_U.data[idx] = U;
         h_tumble_rate.data[idx] = gamma;
         // if(timestep%10000==0)

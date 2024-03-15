@@ -386,9 +386,10 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     // by each particle
     GlobalVector<Scalar> m_tumble_rate; //! tumble rate for each particle
     GlobalVector<Scalar> m_U;
-    GlobalVector<Scalar> m_QH;
-    GlobalVector<Scalar> m_QT;
-    GlobalVector<Scalar> m_S;
+    // these are now moved to particle data
+    // GlobalVector<Scalar> m_QH;
+    // GlobalVector<Scalar> m_QT;
+    // GlobalVector<Scalar> m_S;
     GlobalVector<Scalar> m_c; // c_old
 
     Scalar m_dt;
