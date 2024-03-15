@@ -686,7 +686,7 @@ class PYBIND11_EXPORT ParticleData
         }
 
     //! Return confidences (alternate array)
-    const GlobalArray<Scalar4>& getAltConfidences() const
+    const GlobalArray<Scalar3>& getAltConfidences() const
         {
         return m_confidence_alt;
         }
