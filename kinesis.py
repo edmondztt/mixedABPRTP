@@ -196,3 +196,5 @@ mixed_active.set_concentration_field_file(c_filename)
 nsteps = int(runtime/dt)
 print("run for {0} timesteps".format(nsteps))
 simulation.run(nsteps)
+
+print("finished!")
