@@ -1212,7 +1212,7 @@ void GSDDumpWriter::populateLocalFrame(GSDDumpWriter::GSDFrame& frame, uint64_t 
 
     if (N > 0 && (m_dynamic[gsd_flag::particles_confidence] || m_nframes == 0))
         {
-        ArrayHandle<Scalar4> h_confidence(m_pdata->getConfidences(),
+        ArrayHandle<Scalar3> h_confidence(m_pdata->getConfidences(),
                                            access_location::host,
                                            access_mode::read);
         frame.particle_data_present[gsd_flag::particles_confidence] = true;
