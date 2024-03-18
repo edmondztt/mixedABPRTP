@@ -373,7 +373,7 @@ void ParticleData::allocate(unsigned int N)
     TAG_ALLOCATION(m_pos);
 
     // confidences
-    GlobalArray<Scalar3> confidence(N, m_exec_conf);
+    GlobalArray<Scalar4> confidence(N, m_exec_conf);
     m_confidence.swap(confidence);
     TAG_ALLOCATION(m_confidence);
 
@@ -432,13 +432,13 @@ void ParticleData::allocate(unsigned int N)
         ArrayHandle<Scalar> h_net_virial(m_net_virial,
                                          access_location::host,
                                          access_mode::overwrite);
-        ArrayHandle<Scalar3> h_confidence(m_confidence,
+        ArrayHandle<Scalar4> h_confidence(m_confidence,
                                          access_location::host,
                                          access_mode::overwrite);
         memset(h_net_force.data, 0, sizeof(Scalar4) * m_net_force.getNumElements());
         memset(h_net_torque.data, 0, sizeof(Scalar4) * m_net_torque.getNumElements());
         memset(h_net_virial.data, 0, sizeof(Scalar) * m_net_virial.getNumElements());
-        memset(h_confidence.data, 0, sizeof(Scalar3) * m_confidence.getNumElements());
+        memset(h_confidence.data, 0, sizeof(Scalar4) * m_confidence.getNumElements());
         }
 
     GlobalArray<Scalar4> orientation(N, m_exec_conf);
@@ -528,7 +528,7 @@ void ParticleData::allocateAlternateArrays(unsigned int N)
     TAG_ALLOCATION(m_pos_alt);
 
     // confidences
-    GlobalArray<Scalar3> confidence_alt(N, m_exec_conf);
+    GlobalArray<Scalar4> confidence_alt(N, m_exec_conf);
     m_confidence_alt.swap(confidence_alt);
     TAG_ALLOCATION(m_confidence_alt);
 
@@ -607,13 +607,13 @@ void ParticleData::allocateAlternateArrays(unsigned int N)
         ArrayHandle<Scalar> h_net_virial_alt(m_net_virial_alt,
                                              access_location::host,
                                              access_mode::overwrite);
-        ArrayHandle<Scalar3> h_confidence_alt(m_confidence_alt,
+        ArrayHandle<Scalar4> h_confidence_alt(m_confidence_alt,
                                              access_location::host,
                                              access_mode::overwrite);
         memset(h_net_force_alt.data, 0, sizeof(Scalar4) * m_net_force_alt.getNumElements());
         memset(h_net_torque_alt.data, 0, sizeof(Scalar4) * m_net_torque_alt.getNumElements());
         memset(h_net_virial_alt.data, 0, sizeof(Scalar) * m_net_virial_alt.getNumElements());
-        memset(h_confidence_alt.data, 0, sizeof(Scalar3) * m_confidence_alt.getNumElements());
+        memset(h_confidence_alt.data, 0, sizeof(Scalar4) * m_confidence_alt.getNumElements());
         }
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
@@ -779,13 +779,13 @@ void ParticleData::reallocate(unsigned int max_n)
         ArrayHandle<Scalar> h_net_virial(m_net_virial,
                                          access_location::host,
                                          access_mode::readwrite);
-        ArrayHandle<Scalar3> h_confidence(m_confidence,
+        ArrayHandle<Scalar4> h_confidence(m_confidence,
                                          access_location::host,
                                          access_mode::readwrite);
         memset(h_net_force.data, 0, sizeof(Scalar4) * m_net_force.getNumElements());
         memset(h_net_torque.data, 0, sizeof(Scalar4) * m_net_torque.getNumElements());
         memset(h_net_virial.data, 0, sizeof(Scalar) * m_net_virial.getNumElements());
-        memset(h_confidence.data, 0, sizeof(Scalar3) * m_confidence.getNumElements());
+        memset(h_confidence.data, 0, sizeof(Scalar4) * m_confidence.getNumElements());
         }
 
     m_orientation.resize(max_n);
@@ -873,13 +873,13 @@ void ParticleData::reallocate(unsigned int max_n)
             ArrayHandle<Scalar> h_net_virial_alt(m_net_virial_alt,
                                                  access_location::host,
                                                  access_mode::overwrite);
-            ArrayHandle<Scalar3> h_confidence_alt(m_confidence_alt,
+            ArrayHandle<Scalar4> h_confidence_alt(m_confidence_alt,
                                                  access_location::host,
                                                  access_mode::overwrite);
             memset(h_net_force_alt.data, 0, sizeof(Scalar4) * m_net_force_alt.getNumElements());
             memset(h_net_torque_alt.data, 0, sizeof(Scalar4) * m_net_torque_alt.getNumElements());
             memset(h_net_virial_alt.data, 0, sizeof(Scalar) * m_net_virial_alt.getNumElements());
-            memset(h_confidence_alt.data, 0, sizeof(Scalar3) * m_confidence_alt.getNumElements());
+            memset(h_confidence_alt.data, 0, sizeof(Scalar4) * m_confidence_alt.getNumElements());
             }
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
@@ -1310,7 +1310,7 @@ void ParticleData::initializeFromSnapshot(const SnapshotParticleData<Real>& snap
         resize(snapshot.size);
 
         ArrayHandle<Scalar4> h_pos(m_pos, access_location::host, access_mode::overwrite);
-        ArrayHandle<Scalar3> h_confidence(m_confidence, access_location::host, access_mode::overwrite);
+        ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar4> h_vel(m_vel, access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar3> h_accel(m_accel, access_location::host, access_mode::overwrite);
         ArrayHandle<int3> h_image(m_image, access_location::host, access_mode::overwrite);
@@ -1353,7 +1353,7 @@ void ParticleData::initializeFromSnapshot(const SnapshotParticleData<Real>& snap
             h_orientation.data[nglobal] = quat_to_scalar4(snapshot.orientation[snap_idx]);
             h_angmom.data[nglobal] = quat_to_scalar4(snapshot.angmom[snap_idx]);
             h_inertia.data[nglobal] = vec_to_scalar3(snapshot.inertia[snap_idx]);
-            h_confidence.data[nglobal] = vec_to_scalar3(snapshot.confidence[snap_idx]);
+            h_confidence.data[nglobal] = quat_to_scalar4(snapshot.confidence[snap_idx]);
             nglobal++;
             }
 
@@ -1429,7 +1429,7 @@ template<class Real> void ParticleData::takeSnapshot(SnapshotParticleData<Real>&
     ArrayHandle<Scalar4> h_orientation(m_orientation, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_angmom(m_angmom, access_location::host, access_mode::read);
     ArrayHandle<Scalar3> h_inertia(m_inertia, access_location::host, access_mode::read);
-    ArrayHandle<Scalar3> h_confidence(m_confidence, access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::read);
     ArrayHandle<unsigned int> h_tag(m_tag, access_location::host, access_mode::read);
     ArrayHandle<unsigned int> h_rtag(m_rtag, access_location::host, access_mode::read);
 
@@ -1633,7 +1633,7 @@ template<class Real> void ParticleData::takeSnapshot(SnapshotParticleData<Real>&
             snapshot.orientation[snap_id] = quat<Real>(h_orientation.data[idx]);
             snapshot.angmom[snap_id] = quat<Real>(h_angmom.data[idx]);
             snapshot.inertia[snap_id] = vec3<Real>(h_inertia.data[idx]);
-            snapshot.confidence[snap_id] = vec3<Real>(h_confidence.data[idx]);
+            snapshot.confidence[snap_id] = quat<Real>(h_confidence.data[idx]);
 
             // make sure the position stored in the snapshot is within the boundaries
             Scalar3 tmp = vec_to_scalar3(snapshot.pos[snap_id]);
@@ -2039,14 +2039,14 @@ Scalar3 ParticleData::getMomentsOfInertia(unsigned int tag) const
     }
 
 //! Get the confidence of a particle with a given tag
-Scalar3 ParticleData::getConfidence(unsigned int tag) const
+Scalar4 ParticleData::getConfidence(unsigned int tag) const
     {
     unsigned int idx = getRTag(tag);
     bool found = (idx < getN());
-    Scalar3 result = make_scalar3(0.0, 0.0, 0.0);
+    Scalar4 result = make_scalar4(0.0, 0.0, 0.0, 0.0);
     if (found)
         {
-        ArrayHandle<Scalar3> h_confidence(m_confidence, access_location::host, access_mode::read);
+        ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::read);
         result = h_confidence.data[idx];
         }
 #ifdef ENABLE_MPI
@@ -2470,7 +2470,7 @@ void ParticleData::setMomentsOfInertia(unsigned int tag, const Scalar3& inertia)
     }
 
 //! Set the confidence of a particle with a given tag
-void ParticleData::setConfidence(unsigned int tag, const Scalar3& confidence)
+void ParticleData::setConfidence(unsigned int tag, const Scalar4& confidence)
     {
     unsigned int idx = getRTag(tag);
     bool found = (idx < getN());
@@ -2482,7 +2482,7 @@ void ParticleData::setConfidence(unsigned int tag, const Scalar3& confidence)
 #endif
     if (found)
         {
-        ArrayHandle<Scalar3> h_confidence(m_confidence, access_location::host, access_mode::readwrite);
+        ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::readwrite);
         h_confidence.data[idx] = confidence;
         }
     }
@@ -2576,7 +2576,7 @@ unsigned int ParticleData::addParticle(unsigned int type)
         ArrayHandle<Scalar3> h_inertia(getMomentsOfInertiaArray(),
                                        access_location::host,
                                        access_mode::readwrite);
-        ArrayHandle<Scalar3> h_confidence(getConfidences(),
+        ArrayHandle<Scalar4> h_confidence(getConfidences(),
                                        access_location::host,
                                        access_mode::readwrite);
         ArrayHandle<unsigned int> h_body(getBodies(),
@@ -2601,7 +2601,7 @@ unsigned int ParticleData::addParticle(unsigned int type)
         h_image.data[idx] = make_int3(0, 0, 0);
         h_angmom.data[idx] = make_scalar4(0, 0, 0, 0);
         h_inertia.data[idx] = make_scalar3(0, 0, 0);
-        h_confidence.data[idx] = make_scalar3(0, 0, 0);
+        h_confidence.data[idx] = make_scalar4(0, 0, 0, 0);
         h_body.data[idx] = NO_BODY;
         h_orientation.data[idx] = make_scalar4(1.0, 0.0, 0.0, 0.0);
         h_tag.data[idx] = tag;
@@ -2925,7 +2925,7 @@ template<class Real> void SnapshotParticleData<Real>::resize(unsigned int N)
     orientation.resize(N, quat<Real>(1.0, vec3<Real>(0.0, 0.0, 0.0)));
     angmom.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.resize(N, vec3<Real>(0.0, 0.0, 0.0));
-    confidence.resize(N, vec3<Real>(0.0, 0.0, 0.0));
+    confidence.resize(N, quat<Real>(0.0, 0.0, 0.0, 0.0));
     size = N;
     is_accel_set = false;
     }
@@ -2945,7 +2945,7 @@ template<class Real> void SnapshotParticleData<Real>::insert(unsigned int i, uns
     orientation.insert(orientation.begin() + i, n, quat<Real>(1.0, vec3<Real>(0.0, 0.0, 0.0)));
     angmom.insert(angmom.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.insert(inertia.begin() + i, n, vec3<Real>(0.0, 0.0, 0.0));
-    confidence.insert(confidence.begin() + i, n, vec3<Real>(0.0, 0.0, 0.0));
+    confidence.insert(confidence.begin() + i, n, quat<Real>(0.0, 0.0, 0.0, 0.0));
     size += n;
     is_accel_set = false;
     }
@@ -4076,7 +4076,7 @@ pybind11::object SnapshotParticleData<Real>::getConfidenceNP(pybind11::object se
 
     std::vector<size_t> dims(2);
     dims[0] = self_cpp->confidence.size();
-    dims[1] = 3;
+    dims[1] = 4;
     return pybind11::array(dims, (Real*)&self_cpp->confidence[0], self);
     }
 

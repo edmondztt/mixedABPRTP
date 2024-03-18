@@ -235,6 +235,62 @@ public:
         // interpolate();
         show_unfilled_grid();
     }
+    double getGradX(double x, double y, double t) {
+        // Convert to grid indices
+        double ix = (x - xMin) / deltaX;
+        double iy = (y - yMin) / deltaY;
+        double it = (t - tMin) / deltaT;
+
+        // Find the bounding indices for interpolation
+        int ixLow = std::max(0, static_cast<int>(floor(ix)));
+        int ixHigh = std::min(m_Nx - 1, ixLow + 1);
+        int iyLow = static_cast<int>(floor(iy)) % m_Ny;
+        int iyHigh = (iyLow + 1) % m_Ny;
+        int itLow = std::max(0, static_cast<int>(floor(it)));
+        int itHigh = std::min(m_Nt - 1, itLow + 1);
+
+        // Interpolate along r, y, and t
+        double value = 0.0;
+        double tmpgradx = 0.0;
+        double dx = xcoord[ixHigh] - xcoord[ixLow];
+        for (int j : {iyLow, iyHigh}) {
+            for (int k : {itLow, itHigh}) {
+                double weight = (j == iyLow ? 1 - wy : wy) *
+                                (k == itLow ? 1 - wT : wT);
+                tmpgradx = (grid[ixHigh][j][k] - grid[ixLow][j][k])/dx;
+                value += tmpgradx * weight;
+            }
+        }
+        return value;
+    }
+    double getGradY(double x, double y, double t) {
+        // Convert to grid indices
+        double ix = (x - xMin) / deltaX;
+        double iy = (y - yMin) / deltaY;
+        double it = (t - tMin) / deltaT;
+
+        // Find the bounding indices for interpolation
+        int ixLow = std::max(0, static_cast<int>(floor(ix)));
+        int ixHigh = std::min(m_Nx - 1, ixLow + 1);
+        int iyLow = static_cast<int>(floor(iy)) % m_Ny;
+        int iyHigh = (iyLow + 1) % m_Ny;
+        int itLow = std::max(0, static_cast<int>(floor(it)));
+        int itHigh = std::min(m_Nt - 1, itLow + 1);
+
+        // Interpolate along r, y, and t
+        double value = 0.0;
+        double tmpgradx = 0.0;
+        double dy = ycoord[iyHigh] - ycoord[iyLow];
+        for (int i : {ixLow, ixHigh}) {
+            for (int k : {itLow, itHigh}) {
+                double weight = (i == ixLow ? 1 - wx : wx) *
+                                (k == itLow ? 1 - wT : wT);
+                tmpgradx = (grid[i][iyHigh][k] - grid[i][iyLow][k])/dy;
+                value += tmpgradx * weight;
+            }
+        }
+        return value;
+    }
 };
 
 
@@ -375,6 +431,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     void update_U(Scalar &U, Scalar Q, unsigned int typ);
     void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos, uint64_t timestep);
+    Scalar3 compute_c_grad(Scalar4 pos, uint64_t timestep);
 
     std::shared_ptr<ParticleGroup> m_group; //!< Group of particles on which this force is applied
     GlobalVector<Scalar4>

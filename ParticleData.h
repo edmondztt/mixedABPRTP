@@ -235,7 +235,7 @@ template<class Real> struct PYBIND11_EXPORT SnapshotParticleData
     std::vector<quat<Real>> orientation; //!< orientations
     std::vector<quat<Real>> angmom;      //!< angular momentum quaternion
     std::vector<vec3<Real>> inertia;     //!< principal moments of inertia
-    std::vector<vec3<Real>> confidence;  //!< QH, QT, S
+    std::vector<quat<Real>> confidence;  //!< QH, QT, S, c_old
 
     unsigned int size;                     //!< number of particles in this snapshot
     std::vector<std::string> type_mapping; //!< Mapping between particle type ids and names
@@ -260,7 +260,7 @@ struct pdata_element
     Scalar4 orientation;  //!< Orientation
     Scalar4 angmom;       //!< Angular momentum
     Scalar3 inertia;      //!< Principal moments of inertia
-    Scalar3 confidence;   //!< QH, QT, S
+    Scalar4 confidence;   //!< QH, QT, S
     unsigned int tag;     //!< global tag
     Scalar4 net_force;    //!< net force
     Scalar4 net_torque;   //!< net torque
@@ -601,7 +601,7 @@ class PYBIND11_EXPORT ParticleData
         }
     
     //! return confidence
-    const GlobalArray<Scalar3>& getConfidences() const {
+    const GlobalArray<Scalar4>& getConfidences() const {
         return m_confidence;
     }
 
@@ -687,7 +687,7 @@ class PYBIND11_EXPORT ParticleData
         }
 
     //! Return confidences (alternate array)
-    const GlobalArray<Scalar3>& getAltConfidences() const
+    const GlobalArray<Scalar4>& getAltConfidences() const
         {
         return m_confidence_alt;
         }
@@ -975,7 +975,7 @@ class PYBIND11_EXPORT ParticleData
     Scalar3 getPosition(unsigned int tag) const;
 
     //! get the current confidence of a particle
-    Scalar3 getConfidence(unsigned int tag) const;
+    Scalar4 getConfidence(unsigned int tag) const;
 
     //! Get the current velocity of a particle
     Scalar3 getVelocity(unsigned int tag) const;
@@ -1063,7 +1063,7 @@ class PYBIND11_EXPORT ParticleData
      */
     void setPosition(unsigned int tag, const Scalar3& pos, bool move = true);
 
-    void setConfidence(unsigned int tag, const Scalar3& confidence);
+    void setConfidence(unsigned int tag, const Scalar4& confidence);
 
     //! Set the current velocity of a particle
     void setVelocity(unsigned int tag, const Scalar3& vel);
@@ -1307,7 +1307,7 @@ class PYBIND11_EXPORT ParticleData
 
     // per-particle data
     GlobalArray<Scalar4> m_pos;        //!< particle positions and types
-    GlobalArray<Scalar3> m_confidence;        //!< particle confidences
+    GlobalArray<Scalar4> m_confidence;        //!< particle confidences
     GlobalArray<Scalar4> m_vel;        //!< particle velocities and masses
     GlobalArray<Scalar3> m_accel;      //!< particle accelerations
     GlobalArray<Scalar> m_charge;      //!< particle charges
@@ -1338,7 +1338,7 @@ class PYBIND11_EXPORT ParticleData
        the real particle data at effectively zero cost.
      */
     GlobalArray<Scalar4> m_pos_alt;         //!< particle positions and type (swap-in)
-    GlobalArray<Scalar3> m_confidence_alt;
+    GlobalArray<Scalar4> m_confidence_alt;
     GlobalArray<Scalar4> m_vel_alt;         //!< particle velocities and masses (swap-in)
     GlobalArray<Scalar3> m_accel_alt;       //!< particle accelerations (swap-in)
     GlobalArray<Scalar> m_charge_alt;       //!< particle charges (swap-in)
@@ -1438,12 +1438,12 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
 
     Output getConfidence(GhostDataFlag flag)
         {
-        return this->template getLocalBuffer<Scalar3, Scalar>(
+        return this->template getLocalBuffer<Scalar4, Scalar>(
             m_confidence_handle,
             &ParticleData::getConfidences,
             flag,
             true,
-            3);
+            4);
         }
 
     Output getTypes(GhostDataFlag flag)
@@ -1631,7 +1631,7 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
     // dropped prematurely. If a move constructor is created for ArrayHandle
     // then the implementation can be simplified.
     std::unique_ptr<ArrayHandle<Scalar4>> m_position_handle;
-    std::unique_ptr<ArrayHandle<Scalar3>> m_confidence_handle;
+    std::unique_ptr<ArrayHandle<Scalar4>> m_confidence_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_orientation_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_velocities_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_angular_momentum_handle;

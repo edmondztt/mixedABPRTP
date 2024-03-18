@@ -567,6 +567,59 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
     return timeForNextEvent <= time_elapse;
 }
 
+void MixedActiveForceCompute::taxisturn(uint64_t timestep)
+    {
+    //  array handles
+    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
+                                       access_location::host,
+                                       access_mode::readwrite);
+    ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
+
+    assert(h_pos.data != NULL);
+    assert(h_orientation.data != NULL);
+    assert(h_tag.data != NULL);
+    assert(h_QS.data != NULL);
+
+    Scalar time_elapse = m_deltaT * period;
+
+    for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
+        {
+        unsigned int idx = m_group->getMemberIndex(i);
+        Scalar tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
+        if (tmpQ > 1.0) // TODO: tune the threshold for taxis here
+        {
+            Scalar4 pos = h_pos[idx];
+            unsigned int ptag = h_tag.data[idx];
+            // if i should make a taxis turn
+            cnew = compute_c_new(pos, timestep);
+            if(cnew >= h_QS.data[idx].w){
+                continue;
+            }
+            // now turn to the local grad direction
+            quat<Scalar> quati(h_orientation.data[idx]);
+
+            if (m_sysdef->getNDimensions() == 2) // 2D
+            {
+                Scalar3 cgrad = compute_c_grad(pos, timestep);
+                Scalar gradx, grady; 
+                gradx = cgrad.x; grady = cgrad.y;
+                vec3<Scalar> rot_axis(-grady, gradx, 0.0);
+                quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, M_PI/2);
+                quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
+                h_orientation.data[idx] = quat_to_scalar4(quati);
+                // In 2D, the only meaningful torque vector is out of plane and should not change
+            }
+            else // 3D: Following Stenhammar, Soft Matter, 2014
+            {
+                // TODO: implement 3D
+                
+            }
+        }
+    }
+}
+
 /********** begin aux methods for internal confidence calculations  ***********/
 void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
@@ -621,6 +674,18 @@ Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
     t = m_deltaT * timestep;
     return m_grid_data->getData(x, y, t);
 }
+
+Scalar3 MixedActiveForceCompute::compute_c_grad(Scalar4 pos, uint64_t timestep){
+    Scalar x, y, t;
+    x = pos.x; y = pos.y;
+    t = m_deltaT * timestep;
+    Scalar dcdx, dcdy;
+    dcdx = m_grid_data->getGradX(x, y, t);
+    dcdy = m_grid_data->getGradY(x, y, t);
+    Scalar3 gradc(make_scalar3(dcdx, dcdy, 0.0));
+    return gradc;
+}
+
 /************ end aux methods for internal confidence calculations ************/
 
 
@@ -631,9 +696,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     // printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar3> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
-    ArrayHandle<Scalar> h_c(m_c, access_location::host, access_mode::readwrite);
     
     Scalar QH, QT, S, U, gamma, c_old, c_new; // c store the gradient in [0,1,2], absolute c in [3]
 
@@ -647,8 +711,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         }
         QH = h_QS.data[idx].x;
         QT = h_QS.data[idx].y;
+        c_old = h_QS.data[idx].w;
         U = h_U.data[idx];
-        c_old = h_c.data[idx];
         gamma = h_tumble_rate.data[idx];
         Scalar4 pos = h_pos.data[idx];
         // printf("now at timestep %d, part %d : c_old=%g. before compute new c\n", timestep, idx, c_old);
@@ -660,7 +724,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         update_S(S, gamma, typ);
         update_U(U, QH + QT, typ);
         // now update the device values
-        h_c.data[idx] = c_new;
+        h_QS.data[idx].w = c_new;
         h_QS.data[idx].x = QH;
         h_QS.data[idx].y = QT;
         h_QS.data[idx].z = S;

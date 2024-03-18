@@ -52,6 +52,7 @@ void MixedActiveRotationalDiffusionRunTumbleUpdater::update(uint64_t timestep)
     uint64_t period = trigger->getPeriod();
     m_active_force->rotationalDiffusion(m_rotational_diffusion->operator()(timestep), timestep);
     m_active_force->tumble(m_tumble_angle_gauss_spread->operator()(timestep), period, timestep);
+    m_active_force->taxisturn(timestep);
     }
 
 namespace detail
