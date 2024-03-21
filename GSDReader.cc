@@ -235,7 +235,7 @@ void GSDReader::readParticles()
     readChunk(&m_snapshot->particle_data.confidence[0],
               m_frame,
               "particles/confidence",
-              N * 12,
+              N * 16,
               N);
     readChunk(&m_snapshot->particle_data.pos[0], m_frame, "particles/position", N * 12, N);
     readChunk(&m_snapshot->particle_data.orientation[0],

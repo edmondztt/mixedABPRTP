@@ -249,6 +249,10 @@ public:
         int itLow = std::max(0, static_cast<int>(floor(it)));
         int itHigh = std::min(m_Nt - 1, itLow + 1);
 
+        // Compute weights for interpolation
+        double wx = ix - ixLow;
+        double wy = iy - iyLow;
+        double wT = it - itLow;
         // Interpolate along r, y, and t
         double value = 0.0;
         double tmpgradx = 0.0;
@@ -277,6 +281,10 @@ public:
         int itLow = std::max(0, static_cast<int>(floor(it)));
         int itHigh = std::min(m_Nt - 1, itLow + 1);
 
+        // Compute weights for interpolation
+        double wx = ix - ixLow;
+        double wy = iy - iyLow;
+        double wT = it - itLow;
         // Interpolate along r, y, and t
         double value = 0.0;
         double tmpgradx = 0.0;
@@ -422,6 +430,8 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
+    
+    void taxisturn(uint64_t timestep);
 
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters(uint64_t timestep);

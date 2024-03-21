@@ -99,6 +99,10 @@ pybind11::tuple GSDDumpWriter::getDynamic()
         {
         result.append("particles/orientation");
         }
+    if (m_dynamic[gsd_flag::particles_confidence])
+        {
+        result.append("particles/confidence");
+        }
     if (m_dynamic[gsd_flag::particles_velocity])
         {
         result.append("particles/velocity");
@@ -175,6 +179,10 @@ void GSDDumpWriter::setDynamic(pybind11::object dynamic)
         if (s == "particles/orientation" || s == "property")
             {
             m_dynamic[gsd_flag::particles_orientation] = true;
+            }
+        if (s == "particles/confidence" || s == "property")
+            {
+            m_dynamic[gsd_flag::particles_confidence] = true;
             }
         if (s == "particles/velocity" || s == "momentum")
             {
@@ -685,7 +693,7 @@ void GSDDumpWriter::writeProperties(const GSDDumpWriter::GSDFrame& frame)
                                  "particles/confidence",
                                  GSD_TYPE_FLOAT,
                                  N,
-                                 3,
+                                 4,
                                  0,
                                  (void*)frame.particle_data.confidence.data());
         GSDUtils::checkError(retval, m_fname);
@@ -1212,19 +1220,19 @@ void GSDDumpWriter::populateLocalFrame(GSDDumpWriter::GSDFrame& frame, uint64_t 
 
     if (N > 0 && (m_dynamic[gsd_flag::particles_confidence] || m_nframes == 0))
         {
-        ArrayHandle<Scalar3> h_confidence(m_pdata->getConfidences(),
+        ArrayHandle<Scalar4> h_confidence(m_pdata->getConfidences(),
                                            access_location::host,
                                            access_mode::read);
         frame.particle_data_present[gsd_flag::particles_confidence] = true;
 
         for (unsigned int index : m_index)
             {
-            vec3<Scalar> confidence(h_confidence.data[index]);
-            if (confidence != vec3<Scalar>(0, 0, 0))
+            quat<Scalar> confidence(h_confidence.data[index]);
+            if (confidence.s != Scalar(0.0) || confidence.v.x != Scalar(0.0) || confidence.v.y != Scalar(0.0) ||confidence.v.z != Scalar(0.0) )
                 {
                 all_default[gsd_flag::particles_confidence] = false;
                 }
-            frame.particle_data.confidence.push_back(vec3<float>(confidence));
+            frame.particle_data.confidence.push_back(quat<float>(confidence));
             }
         }
 

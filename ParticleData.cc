@@ -2925,7 +2925,7 @@ template<class Real> void SnapshotParticleData<Real>::resize(unsigned int N)
     orientation.resize(N, quat<Real>(1.0, vec3<Real>(0.0, 0.0, 0.0)));
     angmom.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.resize(N, vec3<Real>(0.0, 0.0, 0.0));
-    confidence.resize(N, quat<Real>(0.0, 0.0, 0.0, 0.0));
+    confidence.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     size = N;
     is_accel_set = false;
     }
@@ -2945,7 +2945,7 @@ template<class Real> void SnapshotParticleData<Real>::insert(unsigned int i, uns
     orientation.insert(orientation.begin() + i, n, quat<Real>(1.0, vec3<Real>(0.0, 0.0, 0.0)));
     angmom.insert(angmom.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.insert(inertia.begin() + i, n, vec3<Real>(0.0, 0.0, 0.0));
-    confidence.insert(confidence.begin() + i, n, quat<Real>(0.0, 0.0, 0.0, 0.0));
+    confidence.insert(confidence.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     size += n;
     is_accel_set = false;
     }

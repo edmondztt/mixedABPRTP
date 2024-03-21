@@ -665,9 +665,9 @@ class MixedActive(Force):
         self._cpp_obj = my_class(sim.state._cpp_sys_def,
                                  sim.state._get_group(self.filter), self.L)
 
-    def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread):
+    def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread, iftaxis):
         return hoomd.md.update.MixedActiveRotationalDiffusionRunTumble(
-            trigger, self, rotational_diffusion, tumble_angle_gauss_spread)
+            trigger, self, rotational_diffusion, tumble_angle_gauss_spread, iftaxis)
     
     def set_concentration_field_file(self, fname):
         self._cpp_obj.setConcentrationFile(fname)

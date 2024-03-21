@@ -147,10 +147,10 @@ class PYBIND11_EXPORT GSDDumpWriter : public Analyzer
             particles_diameter,
             particles_body,
             particles_inertia,
-            particles_confidence,
             particles_velocity,
             particles_angmom,
             particles_image,
+            particles_confidence,
             };
         };
 

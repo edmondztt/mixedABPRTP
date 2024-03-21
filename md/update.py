@@ -316,14 +316,16 @@ class MixedActiveRotationalDiffusionRunTumble(Updater):
             diffusion as a function of time.
         tumble_angle_gauss_spread (hoomd.variant.variant_like): The tumble  
             angle gauss spread as a function of time.
+        iftaixs (bool): whether to perform taxis turns
     """
 
-    def __init__(self, trigger, mixed_active_force, rotational_diffusion, tumble_angle_gauss_spread):
+    def __init__(self, trigger, mixed_active_force, rotational_diffusion, tumble_angle_gauss_spread, iftaixs):
         super().__init__(trigger)
         param_dict = ParameterDict(rotational_diffusion=hoomd.variant.Variant, tumble_angle_gauss_spread=hoomd.variant.Variant, mixed_active_force=hoomd.md.force.MixedActive)
         param_dict["rotational_diffusion"] = rotational_diffusion
         param_dict["mixed_active_force"] = mixed_active_force
         param_dict["tumble_angle_gauss_spread"] = tumble_angle_gauss_spread
+        param_dict["taxis"] = iftaixs
         self._add_dependency(mixed_active_force)
         self._param_dict.update(param_dict)
 
@@ -341,7 +343,8 @@ class MixedActiveRotationalDiffusionRunTumble(Updater):
                 "another simulation.")
         self._cpp_obj = _md.MixedActiveRotationalDiffusionRunTumbleUpdater(
             self._simulation.state._cpp_sys_def, self.trigger,
-            self.rotational_diffusion, self.tumble_angle_gauss_spread, self.mixed_active_force._cpp_obj)
+            self.rotational_diffusion, self.tumble_angle_gauss_spread, self.mixed_active_force._cpp_obj,
+            self.taxis)
 
     def _handle_removed_dependency(self, mixed_active_force):
         sim = self._simulation

@@ -43,7 +43,8 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
                                      std::shared_ptr<Variant> rotational_diffusion,
                                     //  std::vector<Scalar> tumble_rate,
                                      std::shared_ptr<Variant> tumble_angle_gauss_spread,
-                                     std::shared_ptr<MixedActiveForceCompute> mixed_active_force);
+                                     std::shared_ptr<MixedActiveForceCompute> mixed_active_force,
+                                     bool taxis);
 
     /// Destructor
     virtual ~MixedActiveRotationalDiffusionRunTumbleUpdater();
@@ -60,6 +61,11 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
         return m_tumble_angle_gauss_spread;
         }
 
+    bool& getTaxis()
+        {
+        return m_taxis;
+        }
+
     /// set rotational_diffusion
     void setRotationalDiffusion(std::shared_ptr<Variant>& new_diffusion)
         {
@@ -70,6 +76,11 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
     void setTumbleAngleGaussSpread(std::shared_ptr<Variant>& new_tumble_angle_gauss_spread)
         {
         m_tumble_angle_gauss_spread = new_tumble_angle_gauss_spread;
+        }
+
+    void setTaxis(bool iftaxis)
+        {
+        m_taxis = iftaxis;
         }
 
     std::shared_ptr<PeriodicTrigger> getPeriodicTrigger() const {
@@ -88,6 +99,7 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
     virtual void update(uint64_t timestep);
 
     private:
+    bool m_taxis;
     std::shared_ptr<Variant>
         m_rotational_diffusion; //!< Variant that determines the current rotational diffusion
     std::shared_ptr<Variant>

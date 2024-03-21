@@ -582,18 +582,16 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
     assert(h_tag.data != NULL);
     assert(h_QS.data != NULL);
 
-    Scalar time_elapse = m_deltaT * period;
-
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
         {
         unsigned int idx = m_group->getMemberIndex(i);
         Scalar tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
         if (tmpQ > 1.0) // TODO: tune the threshold for taxis here
         {
-            Scalar4 pos = h_pos[idx];
+            Scalar4 pos = h_pos.data[idx];
             unsigned int ptag = h_tag.data[idx];
             // if i should make a taxis turn
-            cnew = compute_c_new(pos, timestep);
+            Scalar cnew = compute_c_new(pos, timestep);
             if(cnew >= h_QS.data[idx].w){
                 continue;
             }
