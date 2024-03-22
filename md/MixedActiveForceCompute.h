@@ -437,7 +437,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     virtual void update_dynamical_parameters(uint64_t timestep);
 
     void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
-    void update_S(Scalar &S, Scalar gamma, unsigned int typ);
+    void update_S(Scalar &S, Scalar Q, unsigned int typ);
     void update_U(Scalar &U, Scalar Q, unsigned int typ);
     void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos, uint64_t timestep);

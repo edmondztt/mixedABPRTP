@@ -384,6 +384,7 @@ void MixedActiveForceCompute::setForces()
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::read);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::read);
 
     // sanity check
     assert(h_f_actVec.data != NULL);
@@ -399,6 +400,9 @@ void MixedActiveForceCompute::setForces()
         {
         unsigned int idx = m_group->getMemberIndex(i);
         unsigned int type = __scalar_as_int(h_pos.data[idx].w);
+        if(h_QS.data[idx].z>1){
+            continue; // if the worm gives up just stop moving
+        }
 
         Scalar U = h_U.data[idx];
         vec3<Scalar> f(h_f_actVec.data[type].w * h_f_actVec.data[type].x,
@@ -430,6 +434,7 @@ void MixedActiveForceCompute::rotationalDiffusion(Scalar rotational_diffusion, u
                                        access_location::host,
                                        access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
 
     assert(h_f_actVec.data != NULL);
     assert(h_pos.data != NULL);
@@ -443,7 +448,7 @@ void MixedActiveForceCompute::rotationalDiffusion(Scalar rotational_diffusion, u
         unsigned int idx = m_group->getMemberIndex(i);
         unsigned int type = __scalar_as_int(h_pos.data[idx].w);
 
-        if (h_f_actVec.data[type].w != 0)
+        if (h_f_actVec.data[type].w != 0 && h_QS.data[idx].z < 1)
             {
             unsigned int ptag = h_tag.data[idx];
             hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
@@ -505,6 +510,7 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
 
     assert(h_tumble_rate.data != NULL);
@@ -517,7 +523,7 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
         {
         unsigned int idx = m_group->getMemberIndex(i);
 
-        if (h_tumble_rate.data[idx] != 0)
+        if (h_tumble_rate.data[idx] != 0 && h_QS.data[idx].z<1)
             {
             unsigned int ptag = h_tag.data[idx];
             hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
@@ -592,19 +598,19 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
             unsigned int ptag = h_tag.data[idx];
             // if i should make a taxis turn
             Scalar cnew = compute_c_new(pos, timestep);
-            if(cnew >= h_QS.data[idx].w){
+            if(cnew > h_QS.data[idx].w){
                 continue;
             }
             // now turn to the local grad direction
-            quat<Scalar> quati(h_orientation.data[idx]);
 
             if (m_sysdef->getNDimensions() == 2) // 2D
             {
                 Scalar3 cgrad = compute_c_grad(pos, timestep);
                 Scalar gradx, grady; 
                 gradx = cgrad.x; grady = cgrad.y;
-                vec3<Scalar> rot_axis(-grady, gradx, 0.0);
-                quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, M_PI/2);
+                vec3<Scalar> rot_axis(0.0, 0.0, 1.0);
+                Scalar theta = atan2(grady, gradx);
+                quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta);
                 quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
                 h_orientation.data[idx] = quat_to_scalar4(quati);
                 // In 2D, the only meaningful torque vector is out of plane and should not change
@@ -621,34 +627,41 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
 /********** begin aux methods for internal confidence calculations  ***********/
 void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
-    switch (FLAG_Q) {
-    case m_FLAG_QH: {
-        k1 = m_kH1[typ];
-        k2 = m_kH2[typ];
-        c_term = (c_new - c_old) / m_deltaT;
-        c_term = (c_term>0) ? c_term : 0;
-        break;
+    c_term = c_new - m_c0_PHD[typ];
+    if(c_term<0){
+        c_term = 0;
     }
-    case m_FLAG_QT: {
-        k1 = m_kT1[typ];
-        k2 = m_kT2[typ];
-        c_term = (c_new - m_c0_PHD[typ]);
-        c_term = (c_term>0) ? 1 : 0;
-        break;
+    else{
+        switch (FLAG_Q) {
+        case m_FLAG_QH: {
+            k1 = m_kH1[typ];
+            k2 = m_kH2[typ];
+            c_term = c_new - c_old;
+            c_term = (c_term>m_c0_PHD[typ]) ? (log(c_term/m_c0_PHD[typ])) : 0;
+            break;
+        }
+        case m_FLAG_QT: {
+            k1 = m_kT1[typ];
+            k2 = m_kT2[typ];
+            c_term = 1.0 * m_deltaT;
+            // c_term = (c_new - m_c0_PHD[typ]);
+            // c_term = (c_term>0) ? 1 : 0;
+            break;
+        }
+        default:
+            printf("FLAG_Q must be either for QH or QT!\n");
+            return;
+        } 
     }
-    default:
-        printf("FLAG_Q must be either for QH or QT!\n");
-        return;
-    } 
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
     return;
 }
 
-void MixedActiveForceCompute::update_S(Scalar &S, Scalar gamma, unsigned int typ){
+void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
     Scalar k1, k2;
     k1 = m_kS1[typ];
     k2 = m_kS2[typ];
-    S += m_deltaT*((-k1) * S + k2*gamma);
+    S -= m_deltaT*(k1 * S + k2*(Q-m_Q0[typ]));
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
@@ -718,8 +731,9 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
+        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
         update_tumble_rate(gamma, QH+QT, typ);
-        update_S(S, gamma, typ);
+        update_S(S, QH + QT, typ);
         update_U(U, QH + QT, typ);
         // now update the device values
         h_QS.data[idx].w = c_new;

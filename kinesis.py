@@ -60,7 +60,7 @@ def rand_unit_quaternion(N, threeD=False):
 
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
-DR = 0.5
+DR = 0.1
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
@@ -69,7 +69,8 @@ Q1 = float(sys.argv[4])
 kT2 = float(sys.argv[5])
 kH2 = float(sys.argv[6])
 kS2 = float(sys.argv[7])
-if_taxis = bool(sys.argv[8]) == "true"
+if_taxis = (sys.argv[8]=="true")
+print("if_taxis=", if_taxis)
 
 # root_path = "/mnt/c/Users/wanxu/pheromone-modeling/"
 root_path = ""
@@ -93,6 +94,7 @@ dr = 0.1
 dtheta = np.pi/180
 rmax = 30 # 30 mm radius for dilute
 
+X0 = 7.5 # initial position
 
 flag_continue = False
 if(not os.path.exists(gsd_filename)):
@@ -102,7 +104,7 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = np.random.rand(N_particles)
+        X = np.random.rand(N_particles)+X0
         Y = np.random.rand(N_particles)
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
@@ -140,8 +142,8 @@ integrator.methods.append(overdamped_viscous)
 mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 0.1, kH2=kH2,
-        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.15, gamma0=1 / 10.0, c0_PHD = 0.1e-5)
+mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
+        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.1, gamma0=1 / 30.0, c0_PHD = 0.1e-5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
 # mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.
@@ -172,7 +174,7 @@ integrator.forces.append(mixed_active)
 simulation.operations.integrator = integrator
 
 
-update_every_n = 1
+update_every_n = 30
 simulation.operations.writers.append(
     hoomd.write.CustomWriter(
         action = print_sim_state(),
@@ -189,7 +191,7 @@ walls = [hoomd.wall.Cylinder(radius=rmax, axis=(0,0,1), inside=True)]
 shifted_lj_wall = hoomd.md.external.wall.ForceShiftedLJ(
     walls=walls)
 shifted_lj_wall.params['A'] = {
-    "epsilon": 10.0, "sigma": 1.0, "r_cut": 3.0}
+    "epsilon": 10.0, "sigma": 1.0, "r_cut": 1.0*2**(1.0/6.0)}
 integrator.forces.append(shifted_lj_wall)
 
 init_time = time.time()
