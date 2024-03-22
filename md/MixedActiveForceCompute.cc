@@ -22,8 +22,8 @@ namespace md
 /*! \param rotation_diff rotational diffusion constant for all particles.
     \param tumble_rate
  */
-MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L)
-    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)) {
+MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L, bool iskinesis)
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)), m_kinesis(iskinesis) {
     
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
@@ -567,11 +567,73 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
         }
     }
 
+void MixedActiveForceCompute::random_turn(uint64_t period, uint64_t timestep){
+    //  array handles
+    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
+                                       access_location::host,
+                                       access_mode::readwrite);
+    ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+
+    assert(h_tumble_rate.data != NULL);
+    assert(h_orientation.data != NULL);
+    assert(h_tag.data != NULL);
+
+    Scalar time_elapse = m_deltaT * period;
+
+    for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
+        unsigned int idx = m_group->getMemberIndex(i);
+
+        if (h_tumble_rate.data[idx] != 0){
+            unsigned int ptag = h_tag.data[idx];
+            hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
+                                                   timestep,
+                                                   m_sysdef->getSeed()),
+                                       hoomd::Counter(ptag));
+
+            // now decide whether to tumble at this timestep
+            if(!should_tumble(h_tumble_rate.data[idx], time_elapse, rng)){
+                continue;
+            }
+
+            quat<Scalar> quati(h_orientation.data[idx]);
+
+            if (m_sysdef->getNDimensions() == 2){ // 2D
+                Scalar delta_theta = hoomd::UniformDistribution<Scalar>(0, M_PI*2 )(rng);
+
+                vec3<Scalar> b(0, 0, 1.0);
+                quat<Scalar> rot_quat = quat<Scalar>::fromAxisAngle(b, delta_theta);
+
+                quati = rot_quat * quati; // tumble quaternion applied to orientation
+                quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
+                h_orientation.data[idx] = quat_to_scalar4(quati);
+                // In 2D, the only meaningful torque vector is out of plane and should not change
+            }
+            else // 3D: Following Stenhammar, Soft Matter, 2014
+                {
+                hoomd::SpherePointGenerator<Scalar> unit_vec;
+                vec3<Scalar> rand_vec;
+                unit_vec(rng, rand_vec);
+
+                Scalar delta_theta = hoomd::UniformDistribution<Scalar>(0, M_PI*2)(rng);
+                quat<Scalar> rot_quat = quat<Scalar>::fromAxisAngle(rand_vec, delta_theta);
+
+                quati = rot_quat * quati; // rotational diffusion quaternion applied to orientation
+                quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
+                h_orientation.data[idx] = quat_to_scalar4(quati);
+            }
+        }
+    }
+}
+
+
 bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng){
     // model tumbling as a Poisson process
     Scalar timeForNextEvent = hoomd::GammaDistribution<Scalar>(1, 1/tumble_rate)(rng);
     return timeForNextEvent <= time_elapse;
 }
+
 
 void MixedActiveForceCompute::taxisturn(uint64_t timestep)
     {
@@ -636,8 +698,9 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
         case m_FLAG_QH: {
             k1 = m_kH1[typ];
             k2 = m_kH2[typ];
-            c_term = c_new - c_old;
-            c_term = (c_term>m_c0_PHD[typ]) ? (log(c_term/m_c0_PHD[typ])) : 0;
+            // c_term = (c_new - c_old)/m_deltaT;
+            // c_term = (c_term>m_c0_PHD[typ]) ? (log(c_term/m_c0_PHD[typ])) : 0;
+            c_term = log(1+c_term/m_c0_PHD[typ]);
             break;
         }
         case m_FLAG_QT: {
@@ -732,16 +795,20 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
-        update_tumble_rate(gamma, QH+QT, typ);
+        
         update_S(S, QH + QT, typ);
         update_U(U, QH + QT, typ);
+        if(m_kinesis){
+            update_tumble_rate(gamma, QH+QT, typ);
+            h_tumble_rate.data[idx] = gamma;
+        }
         // now update the device values
         h_QS.data[idx].w = c_new;
         h_QS.data[idx].x = QH;
         h_QS.data[idx].y = QT;
         h_QS.data[idx].z = S;
         h_U.data[idx] = U;
-        h_tumble_rate.data[idx] = gamma;
+        
         // if(timestep%10000==0)
         //     printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
     }
@@ -785,7 +852,7 @@ void export_MixedActiveForceCompute(pybind11::module& m)
     pybind11::class_<MixedActiveForceCompute, ForceCompute, std::shared_ptr<MixedActiveForceCompute>>(
         m,
         "MixedActiveForceCompute")
-        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar>())
+        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar, bool>())
         .def("setMixedActiveForce", &MixedActiveForceCompute::setMixedActiveForce)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)

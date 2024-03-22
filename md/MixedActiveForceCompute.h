@@ -364,7 +364,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     public:
     //! Constructs the compute
     MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
-                       std::shared_ptr<ParticleGroup> group, Scalar L);
+                       std::shared_ptr<ParticleGroup> group, Scalar L, bool iskinesis);
 
     //! Destructor
     ~MixedActiveForceCompute();
@@ -430,7 +430,8 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
-    
+    void random_turn(uint64_t period, uint64_t timestep);
+
     void taxisturn(uint64_t timestep);
 
     //! update the speed and tumble rate
@@ -460,6 +461,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     GlobalVector<Scalar> m_c; // c_old
 
     Scalar m_dt;
+    bool m_kinesis;
     // by type:
     Scalar* m_kT1;
     Scalar* m_kT2;
