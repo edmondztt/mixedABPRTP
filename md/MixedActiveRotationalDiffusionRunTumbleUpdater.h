@@ -104,7 +104,7 @@ class PYBIND11_EXPORT MixedActiveRotationalDiffusionRunTumbleUpdater : public Up
         m_rotational_diffusion; //!< Variant that determines the current rotational diffusion
     std::shared_ptr<Variant>
         m_tumble_angle_gauss_spread; //!< Variant that determines the spread of tumble angle in the gaussian around pi
-    // std::vector<Scalar> m_tumble_rate; //!< Scalar vector that determines the current tumble rate for each particle
+    // if tumble angle gauss spread < 0, means no kinesis only random walk
     std::shared_ptr<MixedActiveForceCompute>
         m_active_force; //!< Active force to call rotationalDiffusion and tumble on
     };
