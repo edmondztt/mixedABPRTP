@@ -782,7 +782,7 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     Scalar Q0, gamma0;
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
-    gamma = gamma0 * (1 - tanh(Q-Q0));
+    gamma = gamma0/2.0 * (1 - tanh(Q-Q0));
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
@@ -837,12 +837,13 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
-        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
+        // QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
+        QT = QT > 0.2 ? 0.2 : QT; // let tail confidence saturate at 0.2
         
         update_S(S, QH + QT, typ);
         update_U(U, QH, QT, typ);
         if(m_kinesis){
-            update_tumble_rate(gamma, QH+QT, typ);
+            update_tumble_rate(gamma, QH, typ);
         }
         else{
             gamma = m_gamma0[typ];

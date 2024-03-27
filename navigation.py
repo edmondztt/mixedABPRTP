@@ -86,7 +86,7 @@ else:
 noise_Q = 0.01
 print("N=",N_particles,", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2}_Q1{3}_kT2{4}_kH2{5}_kS2{6}_iftaxis{7}_ifkinesis{8}.gsd".format(N_particles, runtime,
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkinesis{8}.gsd".format(N_particles, runtime,
     Q0, Q1, kT2, kH2, kS2, if_taxis, if_kinesis)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
@@ -147,7 +147,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2, isk
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
-        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.1, gamma0=1 / 30.0, 
+        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.1, U1=0.05, gamma0=1 / 15.0, 
         c0_PHD = 1e-6, sigma_QC=2.5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
