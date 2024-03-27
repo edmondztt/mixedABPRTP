@@ -19,7 +19,7 @@ with open(fname, 'w') as f:
             for kS2 in np.array([1.0])*kS20:
                 for Q1 in [0.9]:
                     for ifkinesis in ["false","true"]:
-                        params = "{Np:d},{runtime:d},{Q0},{Q1},{kT2},{kH2},{kS2},{iftaxis},{ifkinesis}".format(Np=Np,runtime=runtime,
+                        params = "{Np:d},{runtime:d},{Q0:.2f},{Q1:.2f},{kT2:.2f},{kH2:.2f},{kS2:.2f},{iftaxis},{ifkinesis}".format(Np=Np,runtime=runtime,
                             Q0=Q0,Q1=Q1,kT2=kT2,kH2=kH2,kS2=kS2,iftaxis=iftaxis,ifkinesis=ifkinesis)
                         # print(params)
                         f.write(params)
