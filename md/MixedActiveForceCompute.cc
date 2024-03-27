@@ -698,8 +698,11 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
         case m_FLAG_QH: {
             k1 = m_kH1[typ];
             k2 = m_kH2[typ];
-            // c_term = (c_new - c_old)/m_deltaT;
-            // c_term = (c_term>m_c0_PHD[typ]) ? (log(c_term/m_c0_PHD[typ])) : 0;
+            if(c_new<=c_old){
+                c_term = 0;
+                break;
+            }
+            c_term = c_new - c_old;
             c_term = log(1+c_term/m_c0_PHD[typ]);
             break;
         }
@@ -800,8 +803,11 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         update_U(U, QH + QT, typ);
         if(m_kinesis){
             update_tumble_rate(gamma, QH+QT, typ);
-            h_tumble_rate.data[idx] = gamma;
         }
+        else{
+            gamma = m_gamma0[typ];
+        }
+        h_tumble_rate.data[idx] = gamma;
         // now update the device values
         h_QS.data[idx].w = c_new;
         h_QS.data[idx].x = QH;
