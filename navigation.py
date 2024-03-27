@@ -191,7 +191,7 @@ simulation.operations.writers.append(
 
 gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(100),
                 filename=gsd_filename,
-                dynamic=['property'])
+                dynamic=['property','momentum'])
 simulation.operations.writers.append(gsd_writer)
 
 walls = [hoomd.wall.Cylinder(radius=rmax, axis=(0,0,1), inside=True)]
