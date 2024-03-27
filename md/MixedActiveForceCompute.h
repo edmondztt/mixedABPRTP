@@ -86,7 +86,7 @@ public:
             printf("indx=%d,indy=%d,indt=%d\n", indx, indy, indt);
             throw std::out_of_range("Data point coordinates out of grid bounds.");
         }
-        grid[indx][indy][indt] = value;
+        grid[indx][indy][indt] = std::max(value, 0.0);
         grid_empty[indx][indy] = false;
     }
 
@@ -324,8 +324,7 @@ struct __attribute__((aligned(16))) mixedactive_params {
 
 #ifndef __HIPCC__
     mixedactive_params() : kT1(1.0/600),kT2(1.0),kH1(0.1),kH2(1.0),kS1(1.0/30),
-    kS2(0.1),Q0(0.3),Q1(0.7),noise_Q(0.02),U0(20),U1(10),gamma0(0.1),c0_PHD(0.1e-5) { }
-
+    kS2(0.1),Q0(0.3),Q1(10.0),noise_Q(0.02),U0(0.2),U1(0.1),gamma0(0.1),c0_PHD(1e-6),sigma_QC(2.5) { }
     mixedactive_params(pybind11::dict params)
         : kT1(params["kT1"].cast<Scalar>()), kT2(params["kT2"].cast<Scalar>()),
         kH1(params["kH1"].cast<Scalar>()), kH2(params["kH2"].cast<Scalar>()),
@@ -333,7 +332,8 @@ struct __attribute__((aligned(16))) mixedactive_params {
         Q0(params["Q0"].cast<Scalar>()), Q1(params["Q1"].cast<Scalar>()),
         noise_Q(params["noise_Q"].cast<Scalar>()), 
         U0(params["U0"].cast<Scalar>()), U1(params["U1"].cast<Scalar>()),
-        gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>())
+        gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>()),
+        sigma_QC(params["sigma_QC"].cast<Scalar>())
         {
         }
 
@@ -353,6 +353,7 @@ struct __attribute__((aligned(16))) mixedactive_params {
         v["U1"] = U1;
         v["gamma0"] = gamma0;
         v["c0_PHD"] = c0_PHD;
+        v["sigma_QC"] = sigma_QC;
         return v;
         }
 #endif

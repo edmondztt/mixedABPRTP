@@ -735,12 +735,20 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
         k1 = m_kH1[typ];
         k2 = m_kH2[typ];
         c_term = (c_new - c_old)/m_deltaT;
+        if(c_term<=0){
+            c_term = 0.0;
+            break;
+        }
         c_term = (c_term>m_c0_PHD[typ]) ? 0.5 : 0.5*exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         break;
     }
     case m_FLAG_QT: {
         k1 = m_kT1[typ];
         k2 = m_kT2[typ];
+        if(c_new<1e-10){
+            c_term = 0.0;
+            break;
+        }
         c_term = 0.3*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         // c_term = (c_new - m_c0_PHD[typ]);
         // c_term = (c_term>0) ? 1 : 0;
