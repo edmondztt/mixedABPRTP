@@ -14,9 +14,9 @@ iftaxis = "true"
 fname = 'parameters.csv'
 with open(fname, 'w') as f:
     f.write('# N_particles runtime Q0 Q1 kT2 kH2 kS2 iftaxis ifkinesis\n')
-    for kT2 in [1.0, 5.0]*kT20:
-        for kH2 in [1.0, 5.0]*kH20:
-            for kS2 in [1.0]*kS20:
+    for kT2 in np.array([1.0, 5.0])*kT20:
+        for kH2 in np.array([1.0, 5.0])*kH20:
+            for kS2 in np.array([1.0])*kS20:
                 for Q1 in [1.0, 5.0]:
                     for ifkinesis in ["false","true"]:
                         params = "{Np:d},{runtime:d},{Q0},{Q1},{kT2},{kH2},{kS2},{iftaxis},{ifkinesis}".format(Np=Np,runtime=runtime,
