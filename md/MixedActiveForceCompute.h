@@ -314,12 +314,13 @@ struct __attribute__((aligned(16))) mixedactive_params {
     Scalar kS1;
     Scalar kS2;
     Scalar Q0; // lower threshold for gamma
-    Scalar Q1; // upper threshold for U
+    Scalar Q1; // threshold for taxis
     Scalar noise_Q;
     Scalar U0;
     Scalar U1;
     Scalar gamma0;
     Scalar c0_PHD;
+    Scalar sigma_QC;
 
 #ifndef __HIPCC__
     mixedactive_params() : kT1(1.0/600),kT2(1.0),kH1(0.1),kH2(1.0),kS1(1.0/30),
@@ -471,7 +472,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar* m_kS1;
     Scalar* m_kS2;
     Scalar* m_Q0; // lower threshold for gamma
-    // Scalar* m_Q1; // upper threshold for U
+    Scalar* m_Q1; // upper threshold for U
     Scalar* m_noise_Q;
     Scalar* m_U0;
     Scalar* m_U1;

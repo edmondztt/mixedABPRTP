@@ -369,6 +369,7 @@ pybind11::dict MixedActiveForceCompute::getParams(std::string type){
     params["U1"] = m_U1[typ];
     params["gamma0"] = m_gamma0[typ];
     params["c0_PHD"] = m_c0_PHD[typ];
+    params["sigma_QC"] = m_sigma_QC[typ];
 
     return params;
     }
@@ -659,8 +660,9 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
         {
         unsigned int idx = m_group->getMemberIndex(i);
+        unsigned int typ = __scalar_as_int(h_pos.data[idx].w);
         Scalar tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
-        if (tmpQ > m_Q1) // TODO: tune the threshold for taxis here
+        if (tmpQ > m_Q1[typ]) // TODO: tune the threshold for taxis here
         {
             Scalar4 pos = h_pos.data[idx];
             unsigned int ptag = h_tag.data[idx];
@@ -733,13 +735,13 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
         k1 = m_kH1[typ];
         k2 = m_kH2[typ];
         c_term = (c_new - c_old)/m_deltaT;
-        c_term = (c_term>m_c0_PHD[typ]) ? 0.5 : 0.5*exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC,2.0));
+        c_term = (c_term>m_c0_PHD[typ]) ? 0.5 : 0.5*exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         break;
     }
     case m_FLAG_QT: {
         k1 = m_kT1[typ];
         k2 = m_kT2[typ];
-        c_term = 0.3*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC,2.0));
+        c_term = 0.3*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         // c_term = (c_new - m_c0_PHD[typ]);
         // c_term = (c_term>0) ? 1 : 0;
         break;
@@ -830,7 +832,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
         
         update_S(S, QH + QT, typ);
-        update_U(U, QH + QT, typ);
+        update_U(U, QH, QT, typ);
         if(m_kinesis){
             update_tumble_rate(gamma, QH+QT, typ);
         }
