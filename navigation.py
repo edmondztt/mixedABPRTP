@@ -108,8 +108,8 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = np.random.rand(N_particles)+X0
-        Y = np.random.rand(N_particles)
+        X = np.random.rand(N_particles)*20+X0
+        Y = np.random.rand(N_particles)*20
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         frame = gsd.hoomd.Frame()
