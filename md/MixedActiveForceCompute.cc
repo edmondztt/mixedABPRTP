@@ -119,6 +119,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     m_U1 = new Scalar[m_pdata->getNTypes()];
     m_gamma0 = new Scalar[m_pdata->getNTypes()];
     m_c0_PHD = new Scalar[m_pdata->getNTypes()];
+    m_sigma_QC = new Scalar[m_pdata->getNTypes()];
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
     if (m_exec_conf->isCUDAEnabled() && m_exec_conf->allConcurrentManagedAccess())
@@ -159,6 +160,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     delete[] m_U1;
     delete[] m_gamma0;
     delete[] m_c0_PHD;
+    delete[] m_sigma_QC;
 
     m_kT1 = NULL;
     m_kT2 = NULL;
@@ -167,12 +169,13 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     m_kS1 = NULL;
     m_kS2 = NULL;
     m_Q0 = NULL; // lower threshold for gamma
-    m_Q1 = NULL; // upper threshold for U
+    m_Q1 = NULL; // threshold for taxis
     m_noise_Q = NULL;
     m_U0 = NULL;
     m_U1 = NULL;
     m_gamma0 = NULL;
     m_c0_PHD = NULL;
+    m_sigma_QC = NULL;
 
     }
 
@@ -304,7 +307,8 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     Scalar U0,
     Scalar U1,
     Scalar gamma0,
-    Scalar c0_PHD){
+    Scalar c0_PHD,
+    Scalar sigma_QC){
     // make sure the type is valid
     if (type >= m_pdata->getNTypes()){
         throw std::invalid_argument("Type does not exist");
@@ -322,6 +326,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_U1[type] = U1;
     m_gamma0[type] = gamma0;
     m_c0_PHD[type] = c0_PHD;
+    m_sigma_QC[type] = sigma_QC;
 }
 
 void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict params){
@@ -339,7 +344,8 @@ void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict p
     _params.U0,
     _params.U1,
     _params.gamma0,
-    _params.c0_PHD);
+    _params.c0_PHD,
+    _params.sigma_QC);
     }
 
 pybind11::dict MixedActiveForceCompute::getParams(std::string type){
@@ -654,7 +660,7 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
         {
         unsigned int idx = m_group->getMemberIndex(i);
         Scalar tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
-        if (tmpQ > 1.0) // TODO: tune the threshold for taxis here
+        if (tmpQ > m_Q1) // TODO: tune the threshold for taxis here
         {
             Scalar4 pos = h_pos.data[idx];
             unsigned int ptag = h_tag.data[idx];
@@ -687,38 +693,62 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
 }
 
 /********** begin aux methods for internal confidence calculations  ***********/
+// void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
+//     Scalar k1, k2, c_term;
+//     c_term = c_new - m_c0_PHD[typ];
+//     if(c_term<0){
+//         c_term = 0;
+//     }
+//     else{
+//         switch (FLAG_Q) {
+//         case m_FLAG_QH: {
+//             k1 = m_kH1[typ];
+//             k2 = m_kH2[typ];
+//             c_term = c_new - c_old;
+//             c_term = (c_term>m_c0_PHD[typ]) ? (log(c_term/m_c0_PHD[typ])) : 0;
+//             break;
+//         }
+//         case m_FLAG_QT: {
+//             k1 = m_kT1[typ];
+//             k2 = m_kT2[typ];
+//             c_term = 1.0 * m_deltaT;
+//             // c_term = (c_new - m_c0_PHD[typ]);
+//             // c_term = (c_term>0) ? 1 : 0;
+//             break;
+//         }
+//         default:
+//             printf("FLAG_Q must be either for QH or QT!\n");
+//             return;
+//         } 
+//     }
+//     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
+//     return;
+// }
+
 void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
-    c_term = c_new - m_c0_PHD[typ];
-    if(c_term<0){
-        c_term = 0;
+
+    switch (FLAG_Q) {
+    case m_FLAG_QH: {
+        k1 = m_kH1[typ];
+        k2 = m_kH2[typ];
+        c_term = (c_new - c_old)/m_deltaT;
+        c_term = (c_term>m_c0_PHD[typ]) ? 0.5 : 0.5*exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC,2.0));
+        break;
     }
-    else{
-        switch (FLAG_Q) {
-        case m_FLAG_QH: {
-            k1 = m_kH1[typ];
-            k2 = m_kH2[typ];
-            if(c_new<=c_old){
-                c_term = 0;
-                break;
-            }
-            c_term = c_new - c_old;
-            c_term = log(1+c_term/m_c0_PHD[typ]);
-            break;
-        }
-        case m_FLAG_QT: {
-            k1 = m_kT1[typ];
-            k2 = m_kT2[typ];
-            c_term = 1.0 * m_deltaT;
-            // c_term = (c_new - m_c0_PHD[typ]);
-            // c_term = (c_term>0) ? 1 : 0;
-            break;
-        }
-        default:
-            printf("FLAG_Q must be either for QH or QT!\n");
-            return;
-        } 
+    case m_FLAG_QT: {
+        k1 = m_kT1[typ];
+        k2 = m_kT2[typ];
+        c_term = 0.3*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC,2.0));
+        // c_term = (c_new - m_c0_PHD[typ]);
+        // c_term = (c_term>0) ? 1 : 0;
+        break;
     }
+    default:
+        printf("FLAG_Q must be either for QH or QT!\n");
+        return;
+    } 
+
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
     return;
 }
@@ -730,12 +760,12 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
     S -= m_deltaT*(k1 * S + k2*(Q-m_Q0[typ]));
 }
 
-void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
+void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ){
     Scalar U0, U1, Q1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     Q1 = m_Q1[typ];
-    U = U0 + U1 * tanh(Q-Q1);
+    U = U0 + U1 * tanh(QH-QT);
 }
 
 void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
