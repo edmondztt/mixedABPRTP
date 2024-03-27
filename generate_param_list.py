@@ -8,7 +8,7 @@ runtime = 500
 Q0 = 0.5
 kT20 = 1.0/30
 kH20 = 1.0/30
-kS20 = 1.0/30
+kS20 = 1.0/60
 iftaxis = "true"
 
 fname = 'parameters.csv'
