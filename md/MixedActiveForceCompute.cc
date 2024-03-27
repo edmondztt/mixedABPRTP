@@ -774,7 +774,7 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned
     Scalar U0, U1, Q1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    Q1 = m_Q1[typ];
+    // Q1 = m_Q1[typ];
     U = U0 + U1 * tanh(QH-QT);
 }
 
