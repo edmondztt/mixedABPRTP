@@ -767,7 +767,7 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
     Scalar k1, k2;
     k1 = m_kS1[typ];
     k2 = m_kS2[typ];
-    S -= m_deltaT*(k1 * S + k2*(Q-m_Q0[typ]));
+    S -= m_deltaT*(k1 * S + k2*(Q-0.3));
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ){
