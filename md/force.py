@@ -640,7 +640,7 @@ class MixedActive(Force):
         params = TypeParameter('params', 'particle_types',
                 TypeParameterDict(kH1=float, kH2=float, kT1=float, kT2=float, 
                                   kS1=float, kS2=float, Q0=float, Q1=float,
-                                  U0=float, U1=float, gamma0=float, c0_PHD=float, noise_Q=float,
+                                  U0=float, U1=float, gamma0=float, c0_PHD=float, sigma_QC=float, noise_Q=float,
                                   len_keys=1))
         self._add_typeparam(params)
         # self._extend_typeparam([mixed_active_force, active_torque,

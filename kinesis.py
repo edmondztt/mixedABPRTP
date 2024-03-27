@@ -143,7 +143,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
-        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.1, gamma0=1 / 30.0, c0_PHD = 0.1e-5)
+        kS1 = 1.0/30, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.2, U1=0.1, gamma0=1 / 30.0, c0_PHD = 1e-6, sigma_QC=2.5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
 # mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.

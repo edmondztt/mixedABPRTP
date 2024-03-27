@@ -395,13 +395,14 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar m_kH2,
     Scalar m_kS1,
     Scalar m_kS2,
-    Scalar m_Q0, 
-    Scalar m_Q1, 
+    Scalar m_Q0, // tumble rate change around this threshold
+    Scalar m_Q1, // threshold for taxis 
     Scalar m_noise_Q,
     Scalar m_U0,
     Scalar m_U1,
     Scalar m_gamma0,
-    Scalar m_c0_PHD);
+    Scalar m_c0_PHD, 
+    Scalar m_sigma_QC);
 
     virtual void setParamsPython(std::string type, pybind11::dict params);
 
@@ -438,7 +439,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
 
     void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
     void update_S(Scalar &S, Scalar Q, unsigned int typ);
-    void update_U(Scalar &U, Scalar Q, unsigned int typ);
+    void update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ);
     void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos, uint64_t timestep);
     Scalar3 compute_c_grad(Scalar4 pos, uint64_t timestep);
@@ -468,12 +469,13 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar* m_kS1;
     Scalar* m_kS2;
     Scalar* m_Q0; // lower threshold for gamma
-    Scalar* m_Q1; // upper threshold for U
+    // Scalar* m_Q1; // upper threshold for U
     Scalar* m_noise_Q;
     Scalar* m_U0;
     Scalar* m_U1;
     Scalar* m_gamma0;
     Scalar* m_c0_PHD;
+    Scalar* m_sigma_QC;
 
     std::unique_ptr<RectGridData> m_grid_data;
 
