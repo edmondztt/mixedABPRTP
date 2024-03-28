@@ -108,8 +108,8 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = np.random.rand(N_particles)*20+X0
-        Y = np.random.rand(N_particles)*20
+        X = np.random.rand(N_particles)*20+X0-10
+        Y = np.random.rand(N_particles)*20-10
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         frame = gsd.hoomd.Frame()
@@ -147,7 +147,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2, isk
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
-        kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.1, U1=0.05, gamma0=1 / 15.0, 
+        kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.1, U1=0.05, gamma0=1 / 10.0, 
         c0_PHD = 1e-6, sigma_QC=2.5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
@@ -213,6 +213,6 @@ mixed_active.set_concentration_field_file(c_filename)
 
 nsteps = int(runtime/dt)
 print("run for {0} timesteps".format(nsteps))
-simulation.run(nsteps)
+simulation.run(nsteps, write_at_start=True)
 
 print("finished!")

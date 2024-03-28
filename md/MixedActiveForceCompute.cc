@@ -67,7 +67,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                             access_location::host,
                             access_mode::overwrite);
     for (unsigned int i = 0; i < m_U.size(); i++)
-        h_U.data[i] = 20.0; // initialize velocities to all be 20 um/s
+        h_U.data[i] = 0.2; // initialize velocities to all be 200 um/s
     // QH initialize
     // now these are moved to particle data
     // GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
@@ -702,6 +702,7 @@ void MixedActiveForceCompute::random_taxis_turn(uint64_t period, uint64_t timest
                                        access_location::host,
                                        access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
 
     assert(h_tumble_rate.data != NULL);
     assert(h_orientation.data != NULL);
@@ -709,51 +710,55 @@ void MixedActiveForceCompute::random_taxis_turn(uint64_t period, uint64_t timest
 
     Scalar time_elapse = m_deltaT * period;
     Scalar tmpQ, gamma, c_new, c_old;
+    Scalar4 pos;
+    unsigned int idx, typ, ptag;
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
-        unsigned int idx = m_group->getMemberIndex(i);
+        idx = m_group->getMemberIndex(i);
+        typ = __scalar_as_int(h_pos.data[idx].w);
+        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
+        pos = h_pos.data[idx];
+        gamma = h_tumble_rate.data[idx];
+        ptag = h_tag.data[idx];
+        
+        hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
+                                                timestep,
+                                                m_sysdef->getSeed()),
+                                    hoomd::Counter(ptag));
+        c_new = compute_c_new(pos, timestep);
+        c_old = h_QS.data[idx].w;
+        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
+        
+        if(c_new<c_old){
+            gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]));
+        }
+        // now decide whether to tumble at this timestep
+        if(!should_tumble(gamma, time_elapse, rng)){
+            continue;
+        }
 
-        if (h_tumble_rate.data[idx] != 0){
-            unsigned int ptag = h_tag.data[idx];
-            hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
-                                                   timestep,
-                                                   m_sysdef->getSeed()),
-                                       hoomd::Counter(ptag));
-            c_new = compute_c_new(pos, timestep);
-            c_old = h_QS.data[idx].w;
-            tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
-            gamma = h_tumble_rate.data[idx];
-            if(c_new<c_old){
-                gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]));
-            }
-            // now decide whether to tumble at this timestep
-            if(!should_tumble(gamma, time_elapse, rng)){
-                continue;
-            }
+        quat<Scalar> quati(h_orientation.data[idx]);
 
-            quat<Scalar> quati(h_orientation.data[idx]);
+        if (m_sysdef->getNDimensions() == 2){ // 2D
+            Scalar theta_random = hoomd::UniformDistribution<Scalar>(0, M_PI*2 )(rng);
+            Scalar3 cgrad = compute_c_grad(pos, timestep);
+            Scalar gradx, grady; 
+            gradx = cgrad.x; grady = cgrad.y;
+            Scalar theta_taxis = atan2(grady, gradx);
+            Scalar frac_taxis = tmpQ/1.2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 1.2, as QT saturates to 0.2, and QH saturates to about 1.0.
+            Scalar theta_mixture = theta_taxis * std::min(frac_taxis,1.0) + theta_random * std::max(1.0-frac_taxis, 0.0);
 
-            if (m_sysdef->getNDimensions() == 2){ // 2D
-                Scalar theta_random = hoomd::UniformDistribution<Scalar>(0, M_PI*2 )(rng);
-                Scalar3 cgrad = compute_c_grad(pos, timestep);
-                Scalar gradx, grady; 
-                gradx = cgrad.x; grady = cgrad.y;
-                Scalar theta_taxis = atan2(grady, gradx);
-                Scalar frac_taxis = tmpQ/1.2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 1.2, as QT saturates to 0.2, and QH saturates to about 1.0.
-                Scalar theta_mixture = theta_taxis * min(frac_taxis,1.0) + theta_random * max(1.0-frac_taxis, 0.0);
+            vec3<Scalar> b(0, 0, 1.0);
+            quat<Scalar> rot_quat = quat<Scalar>::fromAxisAngle(b, theta_mixture);
 
-                vec3<Scalar> b(0, 0, 1.0);
-                quat<Scalar> rot_quat = quat<Scalar>::fromAxisAngle(b, theta_mixture);
-
-                quati = rot_quat * quati; // tumble quaternion applied to orientation
-                quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
-                h_orientation.data[idx] = quat_to_scalar4(quati);
-                // In 2D, the only meaningful torque vector is out of plane and should not change
-            }
-            else // 3D: Following Stenhammar, Soft Matter, 2014
-                {
-                // TODO
-            }
+            quati = rot_quat * quati; // tumble quaternion applied to orientation
+            quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
+            h_orientation.data[idx] = quat_to_scalar4(quati);
+            // In 2D, the only meaningful torque vector is out of plane and should not change
+        }
+        else // 3D: Following Stenhammar, Soft Matter, 2014
+            {
+            // TODO
         }
     }
 }
@@ -762,6 +767,7 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
     {
     //  array handles
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
@@ -770,6 +776,7 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
 
     assert(h_pos.data != NULL);
     assert(h_orientation.data != NULL);
+    assert(h_tumble_rate.data != NULL);
     assert(h_tag.data != NULL);
     assert(h_QS.data != NULL);
 
@@ -811,7 +818,7 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
             Scalar theta_taxis = atan2(grady, gradx);
             Scalar theta_tumble = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
             Scalar frac_taxis = tmpQ/1.2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 1.2, as QT saturates to 0.2, and QH saturates to about 1.0.
-            Scalar theta_mixture = theta_taxis * min(frac_taxis,1.0) + theta_tumble * max(1.0-frac_taxis, 0.0);
+            Scalar theta_mixture = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
 
             quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_mixture);
             quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
@@ -881,8 +888,8 @@ void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsig
     Scalar U0, U1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()), hoomd::Counter(ptag));
-    Scalar fluctuation = hoomd::UniformDistribution<Scalar>(-1, 1)(rng);
+    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,ptag,m_sysdef->getSeed()), hoomd::Counter(ptag));
+    Scalar fluctuation = hoomd::UniformDistribution<Scalar>(-0.2, 1)(rng);
     U = U0 + U1 * fluctuation;
 }
 
