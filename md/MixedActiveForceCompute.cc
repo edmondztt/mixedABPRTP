@@ -887,7 +887,7 @@ void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsig
     Scalar U0, U1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()), hoomd::Counter(ptag));
+    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,ptag,m_sysdef->getSeed()), hoomd::Counter(ptag));
     Scalar fluctuation = hoomd::UniformDistribution<Scalar>(-0.2, 1)(rng);
     U = U0 + U1 * fluctuation;
 }
