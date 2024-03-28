@@ -377,6 +377,11 @@ void ParticleData::allocate(unsigned int N)
     m_confidence.swap(confidence);
     TAG_ALLOCATION(m_confidence);
 
+    // tumble stats
+    GlobalArray<Scalar4> tumble(N, m_exec_conf);
+    m_tumble.swap(tumble);
+    TAG_ALLOCATION(m_tumble);
+
     // velocities
     GlobalArray<Scalar4> vel(N, m_exec_conf);
     m_vel.swap(vel);
@@ -435,10 +440,14 @@ void ParticleData::allocate(unsigned int N)
         ArrayHandle<Scalar4> h_confidence(m_confidence,
                                          access_location::host,
                                          access_mode::overwrite);
+        ArrayHandle<Scalar4> h_tumble(m_tumble,
+                                         access_location::host,
+                                         access_mode::overwrite);
         memset(h_net_force.data, 0, sizeof(Scalar4) * m_net_force.getNumElements());
         memset(h_net_torque.data, 0, sizeof(Scalar4) * m_net_torque.getNumElements());
         memset(h_net_virial.data, 0, sizeof(Scalar) * m_net_virial.getNumElements());
         memset(h_confidence.data, 0, sizeof(Scalar4) * m_confidence.getNumElements());
+        memset(h_tumble.data, 0, sizeof(Scalar4) * m_tumble.getNumElements());
         }
 
     GlobalArray<Scalar4> orientation(N, m_exec_conf);
@@ -532,6 +541,11 @@ void ParticleData::allocateAlternateArrays(unsigned int N)
     m_confidence_alt.swap(confidence_alt);
     TAG_ALLOCATION(m_confidence_alt);
 
+    // tumble
+    GlobalArray<Scalar4> tumble_alt(N, m_exec_conf);
+    m_tumble_alt.swap(tumble_alt);
+    TAG_ALLOCATION(m_tumble_alt);
+
     // velocities
     GlobalArray<Scalar4> vel_alt(N, m_exec_conf);
     m_vel_alt.swap(vel_alt);
@@ -610,10 +624,14 @@ void ParticleData::allocateAlternateArrays(unsigned int N)
         ArrayHandle<Scalar4> h_confidence_alt(m_confidence_alt,
                                              access_location::host,
                                              access_mode::overwrite);
+        ArrayHandle<Scalar4> h_tumble_alt(m_tumble_alt,
+                                             access_location::host,
+                                             access_mode::overwrite);
         memset(h_net_force_alt.data, 0, sizeof(Scalar4) * m_net_force_alt.getNumElements());
         memset(h_net_torque_alt.data, 0, sizeof(Scalar4) * m_net_torque_alt.getNumElements());
         memset(h_net_virial_alt.data, 0, sizeof(Scalar) * m_net_virial_alt.getNumElements());
         memset(h_confidence_alt.data, 0, sizeof(Scalar4) * m_confidence_alt.getNumElements());
+        memset(h_tumble_alt.data, 0, sizeof(Scalar4) * m_tumble_alt.getNumElements());
         }
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
@@ -758,6 +776,7 @@ void ParticleData::reallocate(unsigned int max_n)
 
     m_pos.resize(max_n);
     m_confidence.resize(max_n);
+    m_tumble.resize(max_n);
     m_vel.resize(max_n);
     m_accel.resize(max_n);
     m_charge.resize(max_n);
@@ -782,10 +801,14 @@ void ParticleData::reallocate(unsigned int max_n)
         ArrayHandle<Scalar4> h_confidence(m_confidence,
                                          access_location::host,
                                          access_mode::readwrite);
+        ArrayHandle<Scalar4> h_tumble(m_tumble,
+                                         access_location::host,
+                                         access_mode::readwrite);
         memset(h_net_force.data, 0, sizeof(Scalar4) * m_net_force.getNumElements());
         memset(h_net_torque.data, 0, sizeof(Scalar4) * m_net_torque.getNumElements());
         memset(h_net_virial.data, 0, sizeof(Scalar) * m_net_virial.getNumElements());
         memset(h_confidence.data, 0, sizeof(Scalar4) * m_confidence.getNumElements());
+        memset(h_tumble.data, 0, sizeof(Scalar4) * m_tumble.getNumElements());
         }
 
     m_orientation.resize(max_n);
@@ -848,6 +871,7 @@ void ParticleData::reallocate(unsigned int max_n)
         // reallocate alternate arrays
         m_pos_alt.resize(max_n);
         m_confidence_alt.resize(max_n);
+        m_tumble_alt.resize(max_n);
         m_vel_alt.resize(max_n);
         m_accel_alt.resize(max_n);
         m_charge_alt.resize(max_n);
@@ -876,10 +900,14 @@ void ParticleData::reallocate(unsigned int max_n)
             ArrayHandle<Scalar4> h_confidence_alt(m_confidence_alt,
                                                  access_location::host,
                                                  access_mode::overwrite);
+            ArrayHandle<Scalar4> h_tumble_alt(m_tumble_alt,
+                                                 access_location::host,
+                                                 access_mode::overwrite);
             memset(h_net_force_alt.data, 0, sizeof(Scalar4) * m_net_force_alt.getNumElements());
             memset(h_net_torque_alt.data, 0, sizeof(Scalar4) * m_net_torque_alt.getNumElements());
             memset(h_net_virial_alt.data, 0, sizeof(Scalar) * m_net_virial_alt.getNumElements());
             memset(h_confidence_alt.data, 0, sizeof(Scalar4) * m_confidence_alt.getNumElements());
+            memset(h_tumble_alt.data, 0, sizeof(Scalar4) * m_tumble_alt.getNumElements());
             }
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
@@ -1311,6 +1339,7 @@ void ParticleData::initializeFromSnapshot(const SnapshotParticleData<Real>& snap
 
         ArrayHandle<Scalar4> h_pos(m_pos, access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::overwrite);
+        ArrayHandle<Scalar4> h_tumble(m_tumble, access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar4> h_vel(m_vel, access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar3> h_accel(m_accel, access_location::host, access_mode::overwrite);
         ArrayHandle<int3> h_image(m_image, access_location::host, access_mode::overwrite);
@@ -1354,6 +1383,7 @@ void ParticleData::initializeFromSnapshot(const SnapshotParticleData<Real>& snap
             h_angmom.data[nglobal] = quat_to_scalar4(snapshot.angmom[snap_idx]);
             h_inertia.data[nglobal] = vec_to_scalar3(snapshot.inertia[snap_idx]);
             h_confidence.data[nglobal] = quat_to_scalar4(snapshot.confidence[snap_idx]);
+            h_tumble.data[nglobal] = quat_to_scalar4(snapshot.tumble[snap_idx]);
             nglobal++;
             }
 
@@ -1430,6 +1460,7 @@ template<class Real> void ParticleData::takeSnapshot(SnapshotParticleData<Real>&
     ArrayHandle<Scalar4> h_angmom(m_angmom, access_location::host, access_mode::read);
     ArrayHandle<Scalar3> h_inertia(m_inertia, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_tumble(m_tumble, access_location::host, access_mode::read);
     ArrayHandle<unsigned int> h_tag(m_tag, access_location::host, access_mode::read);
     ArrayHandle<unsigned int> h_rtag(m_rtag, access_location::host, access_mode::read);
 
@@ -1634,6 +1665,7 @@ template<class Real> void ParticleData::takeSnapshot(SnapshotParticleData<Real>&
             snapshot.angmom[snap_id] = quat<Real>(h_angmom.data[idx]);
             snapshot.inertia[snap_id] = vec3<Real>(h_inertia.data[idx]);
             snapshot.confidence[snap_id] = quat<Real>(h_confidence.data[idx]);
+            snapshot.tumble[snap_id] = quat<Real>(h_tumble.data[idx]);
 
             // make sure the position stored in the snapshot is within the boundaries
             Scalar3 tmp = vec_to_scalar3(snapshot.pos[snap_id]);
@@ -2048,6 +2080,31 @@ Scalar4 ParticleData::getConfidence(unsigned int tag) const
         {
         ArrayHandle<Scalar4> h_confidence(m_confidence, access_location::host, access_mode::read);
         result = h_confidence.data[idx];
+        }
+#ifdef ENABLE_MPI
+    if (m_decomposition)
+        {
+        unsigned int owner_rank = getOwnerRank(tag);
+        bcast((Scalar&)result.x, owner_rank, m_exec_conf->getMPICommunicator());
+        bcast((Scalar&)result.y, owner_rank, m_exec_conf->getMPICommunicator());
+        bcast((Scalar&)result.z, owner_rank, m_exec_conf->getMPICommunicator());
+        found = true;
+        }
+#endif
+    assert(found);
+    return result;
+    }
+
+//! Get the tumble of a particle with a given tag
+Scalar4 ParticleData::getTumble(unsigned int tag) const
+    {
+    unsigned int idx = getRTag(tag);
+    bool found = (idx < getN());
+    Scalar4 result = make_scalar4(0.0, 0.0, 0.0, 0.0);
+    if (found)
+        {
+        ArrayHandle<Scalar4> h_tumble(m_tumble, access_location::host, access_mode::read);
+        result = h_tumble.data[idx];
         }
 #ifdef ENABLE_MPI
     if (m_decomposition)
@@ -2487,6 +2544,23 @@ void ParticleData::setConfidence(unsigned int tag, const Scalar4& confidence)
         }
     }
 
+//! Set the tumble of a particle with a given tag
+void ParticleData::setTumble(unsigned int tag, const Scalar4& tumble)
+    {
+    unsigned int idx = getRTag(tag);
+    bool found = (idx < getN());
+
+#ifdef ENABLE_MPI
+    // make sure the particle is somewhere
+    if (m_decomposition)
+        getOwnerRank(tag);
+#endif
+    if (found)
+        {
+        ArrayHandle<Scalar4> h_tumble(m_tumble, access_location::host, access_mode::readwrite);
+        h_tumble.data[idx] = tumble;
+        }
+    }
 /*!
  * Initialize the particle data with a new particle of given type.
  *
@@ -2579,6 +2653,9 @@ unsigned int ParticleData::addParticle(unsigned int type)
         ArrayHandle<Scalar4> h_confidence(getConfidences(),
                                        access_location::host,
                                        access_mode::readwrite);
+        ArrayHandle<Scalar4> h_tumble(getTumbles(),
+                                       access_location::host,
+                                       access_mode::readwrite);
         ArrayHandle<unsigned int> h_body(getBodies(),
                                          access_location::host,
                                          access_mode::readwrite);
@@ -2602,6 +2679,7 @@ unsigned int ParticleData::addParticle(unsigned int type)
         h_angmom.data[idx] = make_scalar4(0, 0, 0, 0);
         h_inertia.data[idx] = make_scalar3(0, 0, 0);
         h_confidence.data[idx] = make_scalar4(0, 0, 0, 0);
+        h_tumble.data[idx] = make_scalar4(0, 0, 0, 0);
         h_body.data[idx] = NO_BODY;
         h_orientation.data[idx] = make_scalar4(1.0, 0.0, 0.0, 0.0);
         h_tag.data[idx] = tag;
@@ -2864,6 +2942,7 @@ void export_ParticleData(pybind11::module& m)
         .def("__str__", &print_ParticleData)
         .def("getPosition", &ParticleData::getPosition)
         .def("getConfidence", &ParticleData::getConfidence)
+        .def("getTumble", &ParticleData::getTumble)
         .def("getVelocity", &ParticleData::getVelocity)
         .def("getAcceleration", &ParticleData::getAcceleration)
         .def("getImage", &ParticleData::getImage)
@@ -2880,6 +2959,7 @@ void export_ParticleData(pybind11::module& m)
         .def("getMomentsOfInertia", &ParticleData::getMomentsOfInertia)
         .def("setPosition", &ParticleData::setPosition)
         .def("setConfidence", &ParticleData::setConfidence)
+        .def("setTumble", &ParticleData::setTumble)
         .def("setVelocity", &ParticleData::setVelocity)
         .def("setImage", &ParticleData::setImage)
         .def("setCharge", &ParticleData::setCharge)
@@ -2926,6 +3006,7 @@ template<class Real> void SnapshotParticleData<Real>::resize(unsigned int N)
     angmom.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.resize(N, vec3<Real>(0.0, 0.0, 0.0));
     confidence.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
+    tumble.resize(N, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     size = N;
     is_accel_set = false;
     }
@@ -2946,6 +3027,7 @@ template<class Real> void SnapshotParticleData<Real>::insert(unsigned int i, uns
     angmom.insert(angmom.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     inertia.insert(inertia.begin() + i, n, vec3<Real>(0.0, 0.0, 0.0));
     confidence.insert(confidence.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
+    tumble.insert(tumble.begin() + i, n, quat<Real>(0.0, vec3<Real>(0.0, 0.0, 0.0)));
     size += n;
     is_accel_set = false;
     }
@@ -2956,7 +3038,7 @@ template<class Real> void SnapshotParticleData<Real>::validate() const
     if (pos.size() != size || vel.size() != size || accel.size() != size || type.size() != size
         || mass.size() != size || charge.size() != size || diameter.size() != size
         || image.size() != size || body.size() != size || orientation.size() != size
-        || angmom.size() != size || inertia.size() != size || confidence.size() != size)
+        || angmom.size() != size || inertia.size() != size || confidence.size() != size || tumble.size() != size)
         {
         throw std::runtime_error("All array sizes must match.");
         }
@@ -3888,6 +3970,7 @@ void SnapshotParticleData<Real>::replicate(unsigned int nx,
                     angmom[k] = angmom[i];
                     inertia[k] = inertia[i];
                     confidence[k] = confidence[i];
+                    tumble[k] = tumble[i];
                     j++;
                     }
         }
@@ -4080,6 +4163,19 @@ pybind11::object SnapshotParticleData<Real>::getConfidenceNP(pybind11::object se
     return pybind11::array(dims, (Real*)&self_cpp->confidence[0], self);
     }
 
+template<class Real>
+pybind11::object SnapshotParticleData<Real>::getTumbleNP(pybind11::object self)
+    {
+    auto self_cpp = self.cast<SnapshotParticleData<Real>*>();
+    // mark as dirty when accessing internal data
+    self_cpp->is_accel_set = false;
+
+    std::vector<size_t> dims(2);
+    dims[0] = self_cpp->tumble.size();
+    dims[1] = 4;
+    return pybind11::array(dims, (Real*)&self_cpp->tumble[0], self);
+    }
+
 /*! \returns a numpy array that wraps the angular momentum data element.
     The raw data is referenced by the numpy array, modifications to the numpy array will modify the
    snapshot
@@ -4168,6 +4264,7 @@ void export_SnapshotParticleData(pybind11::module& m)
         .def_property_readonly("orientation", &SnapshotParticleData<float>::getOrientationNP)
         .def_property_readonly("moment_inertia", &SnapshotParticleData<float>::getMomentInertiaNP)
         .def_property_readonly("confidence", &SnapshotParticleData<float>::getConfidenceNP)
+        .def_property_readonly("tumble", &SnapshotParticleData<float>::getTumbleNP)
         .def_property_readonly("angmom", &SnapshotParticleData<float>::getAngmomNP)
         .def_property("types",
                       &SnapshotParticleData<float>::getTypes,
@@ -4193,6 +4290,7 @@ void export_SnapshotParticleData(pybind11::module& m)
         .def_property_readonly("orientation", &SnapshotParticleData<double>::getOrientationNP)
         .def_property_readonly("moment_inertia", &SnapshotParticleData<double>::getMomentInertiaNP)
         .def_property_readonly("confidence", &SnapshotParticleData<double>::getConfidenceNP)
+        .def_property_readonly("tumble", &SnapshotParticleData<double>::getTumbleNP)
         .def_property_readonly("angmom", &SnapshotParticleData<double>::getAngmomNP)
         .def_property("types",
                       &SnapshotParticleData<double>::getTypes,
