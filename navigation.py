@@ -70,24 +70,32 @@ kT2 = float(sys.argv[5])
 kH2 = float(sys.argv[6])
 kS2 = float(sys.argv[7])
 if_taxis = (sys.argv[8]=="true")
-if_kinesis = (sys.argv[9]=="true")
+if_klinokinesis = (sys.argv[9]=="true")
+if_orthokinesis = (sys.argv[10]=="true")
 print("if_taxis=", if_taxis)
-print("if_kinesis=", if_kinesis)
+print("if_klinokinesis=", if_klinokinesis)
+print("if_orthokinesis=", if_orthokinesis)
+
+gamma0 = 1/ 15.0
 
 # root_path = "/mnt/c/Users/wanxu/pheromone-modeling/"
 root_path = "data/"
 if if_taxis:
     path = root_path+"taxis_"
-if if_kinesis:
-    path = root_path+"kinesis_"
+if if_klinokinesis:
+    path = root_path+"kk_"
 else:
-    path = root_path+"random_"
+    path = root_path+"kr_"
+if if_orthokinesis:
+    path = root_path+"ok_"
+else:
+    path = root_path+"or_"
 
 noise_Q = 0.01
 print("N=",N_particles,", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkinesis{8}.gsd".format(N_particles, runtime,
-    Q0, Q1, kT2, kH2, kS2, if_taxis, if_kinesis)
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkk{8}_ifok{9}.gsd".format(N_particles, runtime,
+    Q0, Q1, kT2, kH2, kS2, if_taxis, if_klinokinesis, if_orthokinesis)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -143,11 +151,12 @@ integrator.methods.append(overdamped_viscous)
 # integrator.methods.append(nvt)
 
 
-mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2, iskinesis=if_kinesis)
+mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2, 
+                    is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
-        kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.1, U1=0.05, gamma0=1 / 10.0, 
+        kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.1, U1=0.05, gamma0=gamma0, 
         c0_PHD = 1e-6, sigma_QC=2.5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
@@ -163,7 +172,7 @@ mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
 # mixed_active.gamma0['A'] = 1 / 10.0 # tumble about every 10 s. ??
 # mixed_active.c0_PHD['A'] = 0.1e-5 # the concentration level that PHD will detect
 
-if not if_kinesis:
+if not if_klinokinesis:
     sigma_tumble = -1 # < 0 means no kinesis only random walk
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
     trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=if_taxis)

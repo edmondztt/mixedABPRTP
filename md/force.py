@@ -616,10 +616,11 @@ class Constant(Force):
 
 class MixedActive(Force):
 
-    def __init__(self, filter, L, iskinesis):
+    def __init__(self, filter, L, is_klinokinesis, is_orthokinesis):
         super().__init__()
         self.L = L
-        self.iskinesis = iskinesis
+        self.is_klinokinesis = is_klinokinesis
+        self.is_orthokinesis = is_orthokinesis
         # store metadata
         param_dict = ParameterDict(filter=ParticleFilter)
         param_dict["filter"] = filter
@@ -664,7 +665,7 @@ class MixedActive(Force):
             my_class = _md.MixedActiveForceComputeGPU
 
         self._cpp_obj = my_class(sim.state._cpp_sys_def,
-                                 sim.state._get_group(self.filter), self.L, self.iskinesis)
+                                 sim.state._get_group(self.filter), self.L, self.is_klinokinesis, self.is_orthokinesis)
 
     def create_diffusion_tumble_updater(self, trigger, rotational_diffusion, tumble_angle_gauss_spread, iftaxis):
         return hoomd.md.update.MixedActiveRotationalDiffusionRunTumble(
