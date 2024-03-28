@@ -429,14 +429,21 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
 
     //! Orientational diffusion for spherical particles
     virtual void rotationalDiffusion(Scalar rotational_diffusion, uint64_t timestep);
-    //! tumble
-    virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
+
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
-    void random_turn(uint64_t period, uint64_t timestep);
+    //! tumble
+    virtual void tumble(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
+    //! random turn
+    virtual void random_turn(uint64_t period, uint64_t timestep);
+    //! random turn + taxis
+    virtual void random_taxis_turn(uint64_t period, uint64_t timestep);
+    //! tumble + taxis
+    virtual void general_turn(Scalar tumble_angle_gauss_spread, uint64_t period, uint64_t timestep);
 
-    void taxisturn(uint64_t timestep);
-
+    //! taxis turn only; this one is arbitrary suddent switch to fully accurate taxis turns. obsolete
+    virtual void taxisturn(uint64_t timestep);
+    
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters(uint64_t timestep);
 
