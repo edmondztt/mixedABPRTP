@@ -215,6 +215,7 @@ template<class Real> struct PYBIND11_EXPORT SnapshotParticleData
     //! Get moment of inertia as a numpy array
     static pybind11::object getMomentInertiaNP(pybind11::object self);
     static pybind11::object getConfidenceNP(pybind11::object self);
+    static pybind11::object getTumbleNP(pybind11::object self);
     //! Get angular momentum as a numpy array
     static pybind11::object getAngmomNP(pybind11::object self);
 
@@ -236,6 +237,7 @@ template<class Real> struct PYBIND11_EXPORT SnapshotParticleData
     std::vector<quat<Real>> angmom;      //!< angular momentum quaternion
     std::vector<vec3<Real>> inertia;     //!< principal moments of inertia
     std::vector<quat<Real>> confidence;  //!< QH, QT, S, c_old
+    std::vector<quat<Real>> tumble;  //!< tumble rate gamma
 
     unsigned int size;                     //!< number of particles in this snapshot
     std::vector<std::string> type_mapping; //!< Mapping between particle type ids and names
@@ -261,6 +263,7 @@ struct pdata_element
     Scalar4 angmom;       //!< Angular momentum
     Scalar3 inertia;      //!< Principal moments of inertia
     Scalar4 confidence;   //!< QH, QT, S
+    Scalar4 tumble;   //!< gamma
     unsigned int tag;     //!< global tag
     Scalar4 net_force;    //!< net force
     Scalar4 net_torque;   //!< net torque
@@ -605,6 +608,11 @@ class PYBIND11_EXPORT ParticleData
         return m_confidence;
     }
 
+    //! return tumble statistics
+    const GlobalArray<Scalar4>& getTumbles() const {
+        return m_tumble;
+    }
+
     //! Return velocities and masses
     const GlobalArray<Scalar4>& getVelocities() const
         {
@@ -696,6 +704,18 @@ class PYBIND11_EXPORT ParticleData
     inline void swapConfidences()
         {
         m_confidence.swap(m_confidence_alt);
+        }
+
+    //! Return tumbles (alternate array)
+    const GlobalArray<Scalar4>& getAltTumbles() const
+        {
+        return m_tumble_alt;
+        }
+
+    //! Swap in positions
+    inline void swapTumbles()
+        {
+        m_tumble.swap(m_tumble_alt);
         }
 
     //! Return velocities and masses (alternate array)
@@ -976,6 +996,9 @@ class PYBIND11_EXPORT ParticleData
 
     //! get the current confidence of a particle
     Scalar4 getConfidence(unsigned int tag) const;
+    
+    //! get tumble stats
+    Scalar4 getTumble(unsigned int tag) const;
 
     //! Get the current velocity of a particle
     Scalar3 getVelocity(unsigned int tag) const;
@@ -1064,6 +1087,8 @@ class PYBIND11_EXPORT ParticleData
     void setPosition(unsigned int tag, const Scalar3& pos, bool move = true);
 
     void setConfidence(unsigned int tag, const Scalar4& confidence);
+    
+    void setTumble(unsigned int tag, const Scalar4& tumble);
 
     //! Set the current velocity of a particle
     void setVelocity(unsigned int tag, const Scalar3& vel);
@@ -1308,6 +1333,7 @@ class PYBIND11_EXPORT ParticleData
     // per-particle data
     GlobalArray<Scalar4> m_pos;        //!< particle positions and types
     GlobalArray<Scalar4> m_confidence;        //!< particle confidences
+    GlobalArray<Scalar4> m_tumble;        //!< particle tumble stats
     GlobalArray<Scalar4> m_vel;        //!< particle velocities and masses
     GlobalArray<Scalar3> m_accel;      //!< particle accelerations
     GlobalArray<Scalar> m_charge;      //!< particle charges
@@ -1339,6 +1365,7 @@ class PYBIND11_EXPORT ParticleData
      */
     GlobalArray<Scalar4> m_pos_alt;         //!< particle positions and type (swap-in)
     GlobalArray<Scalar4> m_confidence_alt;
+    GlobalArray<Scalar4> m_tumble_alt;
     GlobalArray<Scalar4> m_vel_alt;         //!< particle velocities and masses (swap-in)
     GlobalArray<Scalar3> m_accel_alt;       //!< particle accelerations (swap-in)
     GlobalArray<Scalar> m_charge_alt;       //!< particle charges (swap-in)
@@ -1417,7 +1444,7 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
                                                      data.getN(),
                                                      data.getNGhosts(),
                                                      data.getNGlobal()),
-          m_position_handle(), m_confidence_handle(), m_orientation_handle(), m_velocities_handle(),
+          m_position_handle(), m_confidence_handle(), m_tumble_handle(), m_orientation_handle(), m_velocities_handle(),
           m_angular_momentum_handle(), m_acceleration_handle(), m_inertia_handle(),
           m_charge_handle(), m_diameter_handle(), m_image_handle(), m_tag_handle(), m_rtag_handle(),
           m_rigid_body_ids_handle(), m_net_force_handle(), m_net_virial_handle(),
@@ -1441,6 +1468,16 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
         return this->template getLocalBuffer<Scalar4, Scalar>(
             m_confidence_handle,
             &ParticleData::getConfidences,
+            flag,
+            true,
+            4);
+        }
+
+    Output getTumble(GhostDataFlag flag)
+        {
+        return this->template getLocalBuffer<Scalar4, Scalar>(
+            m_tumble_handle,
+            &ParticleData::getTumbles,
             flag,
             true,
             4);
@@ -1609,6 +1646,7 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
         {
         m_position_handle.reset(nullptr);
         m_confidence_handle.reset(nullptr);
+        m_tumble_handle.reset(nullptr);
         m_orientation_handle.reset(nullptr);
         m_velocities_handle.reset(nullptr);
         m_angular_momentum_handle.reset(nullptr);
@@ -1632,6 +1670,7 @@ class PYBIND11_EXPORT LocalParticleData : public GhostLocalDataAccess<Output, Pa
     // then the implementation can be simplified.
     std::unique_ptr<ArrayHandle<Scalar4>> m_position_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_confidence_handle;
+    std::unique_ptr<ArrayHandle<Scalar4>> m_tumble_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_orientation_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_velocities_handle;
     std::unique_ptr<ArrayHandle<Scalar4>> m_angular_momentum_handle;
@@ -1664,6 +1703,7 @@ template<class Output> void export_LocalParticleData(pybind11::module& m, std::s
         .def(pybind11::init<ParticleData&>())
         .def("getPosition", &LocalParticleData<Output>::getPosition)
         .def("getConfidence", &LocalParticleData<Output>::getConfidence)
+        .def("getTumble", &LocalParticleData<Output>::getTumble)
         .def("getTypes", &LocalParticleData<Output>::getTypes)
         .def("getVelocities", &LocalParticleData<Output>::getVelocities)
         .def("getAcceleration", &LocalParticleData<Output>::getAcceleration)

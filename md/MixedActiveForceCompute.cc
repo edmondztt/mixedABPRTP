@@ -791,7 +791,6 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
         typ = __scalar_as_int(h_pos.data[idx].w);
         tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
         pos = h_pos.data[idx];
-        gamma = h_tumble_rate.data[idx];
         ptag = h_tag.data[idx];
 
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
@@ -803,8 +802,10 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
         {
             c_new = compute_c_new(pos, timestep);
             c_old = h_QS.data[idx].w;
+            update_tumble_rate(gamma, tmpQ, typ);
             if(c_new<c_old){
                 gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]));
+                h_tumble_rate.data[idx] = gamma;
             }
             // now decide whether to tumble at this timestep
             if(!should_tumble(gamma, time_elapse, rng)){
