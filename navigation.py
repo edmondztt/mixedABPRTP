@@ -108,8 +108,8 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = np.random.rand(N_particles)*20+X0
-        Y = np.random.rand(N_particles)*20
+        X = np.random.rand(N_particles)*20+X0-10
+        Y = np.random.rand(N_particles)*20-10
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         frame = gsd.hoomd.Frame()
@@ -213,6 +213,6 @@ mixed_active.set_concentration_field_file(c_filename)
 
 nsteps = int(runtime/dt)
 print("run for {0} timesteps".format(nsteps))
-simulation.run(nsteps)
+simulation.run(nsteps, write_at_start=True)
 
 print("finished!")

@@ -67,7 +67,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                             access_location::host,
                             access_mode::overwrite);
     for (unsigned int i = 0; i < m_U.size(); i++)
-        h_U.data[i] = 20.0; // initialize velocities to all be 20 um/s
+        h_U.data[i] = 0.2; // initialize velocities to all be 200 um/s
     // QH initialize
     // now these are moved to particle data
     // GlobalVector<Scalar> tmp_QH(max_num_particles, m_exec_conf);
