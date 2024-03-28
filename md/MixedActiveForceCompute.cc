@@ -22,13 +22,13 @@ namespace md
 /*! \param rotation_diff rotational diffusion constant for all particles.
     \param tumble_rate
  */
-MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L, bool iskinesis)
-    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)), m_kinesis(iskinesis) {
+MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef, std::shared_ptr<ParticleGroup> group, Scalar L, bool is_klinokinesis, bool is_orthokinesis)
+    : ForceCompute(sysdef), m_group(group), m_grid_data(std::make_unique<RectGridData>(-L/2,L/2,-L/2,L/2)), m_klinokinesis(is_klinokinesis), m_orthokinesis(is_orthokinesis) {
     
     // allocate memory for the per-type mixed_active_force storage and initialize them to (1.0,0,0)
     GlobalVector<Scalar4> tmp_f_activeVec(m_pdata->getNTypes(), m_exec_conf);
     m_f_activeVec.swap(tmp_f_activeVec);
-    TAG_ALLOCATION(m_f_activeVec);    
+    TAG_ALLOCATION(m_f_activeVec);
 
     ArrayHandle<Scalar4> h_f_activeVec(m_f_activeVec,
                                        access_location::host,
@@ -877,6 +877,15 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned
     U = U0 + U1 * tanh(QH-QT);
 }
 
+void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsigned int ptag){
+    Scalar U0, U1;
+    U0 = m_U0[typ];
+    U1 = m_U1[typ];
+    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()), hoomd::Counter(ptag));
+    Scalar fluctuation = hoomd::UniformDistribution<Scalar>(-1, 1)(rng);
+    U = U0 + U1 * fluctuation;
+}
+
 void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
     Scalar Q0, gamma0;
     gamma0 = m_gamma0[typ];
@@ -914,13 +923,17 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
-    
+    ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+
     Scalar QH, QT, S, U, gamma, c_old, c_new; // c store the gradient in [0,1,2], absolute c in [3]
+    unsigned int idx, typ, ptag;
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
     {
-        unsigned int idx = m_group->getMemberIndex(i);
-        unsigned int typ = __scalar_as_int(h_pos.data[idx].w);
+        idx = m_group->getMemberIndex(i);
+        typ = __scalar_as_int(h_pos.data[idx].w);
+        ptag = h_tag.data[idx];
+
         S = h_QS.data[idx].z;
         if(S>=1){
             continue;
@@ -940,8 +953,15 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         QT = QT > 0.2 ? 0.2 : QT; // let tail confidence saturate at 0.2
         
         update_S(S, QH + QT, typ);
-        update_U(U, QH, QT, typ);
-        if(m_kinesis){
+        
+        if(m_orthokinesis){
+            update_U(U, QH, QT, typ);
+        }
+        else{
+            update_U_random(U, typ, ptag);
+        }
+        
+        if(m_klinokinesis){
             update_tumble_rate(gamma, QH+QT, typ);
         }
         else{
@@ -998,7 +1018,7 @@ void export_MixedActiveForceCompute(pybind11::module& m)
     pybind11::class_<MixedActiveForceCompute, ForceCompute, std::shared_ptr<MixedActiveForceCompute>>(
         m,
         "MixedActiveForceCompute")
-        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar, bool>())
+        .def(pybind11::init<std::shared_ptr<SystemDefinition>, std::shared_ptr<ParticleGroup>, Scalar, bool, bool>())
         .def("setMixedActiveForce", &MixedActiveForceCompute::setMixedActiveForce)
         .def("getMixedActiveForce", &MixedActiveForceCompute::getMixedActiveForce)
         .def("setActiveTorque", &MixedActiveForceCompute::setActiveTorque)

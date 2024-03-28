@@ -366,7 +366,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     public:
     //! Constructs the compute
     MixedActiveForceCompute(std::shared_ptr<SystemDefinition> sysdef,
-                       std::shared_ptr<ParticleGroup> group, Scalar L, bool iskinesis);
+                       std::shared_ptr<ParticleGroup> group, Scalar L, bool is_klinokinesis, bool is_orthokinesis);
 
     //! Destructor
     ~MixedActiveForceCompute();
@@ -450,6 +450,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
     void update_S(Scalar &S, Scalar Q, unsigned int typ);
     void update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ);
+    void update_U_random(Scalar &U, unsigned int typ, unsigned int ptag);
     void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos, uint64_t timestep);
     Scalar3 compute_c_grad(Scalar4 pos, uint64_t timestep);
@@ -461,17 +462,18 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     GlobalVector<Scalar4>
         m_t_activeVec; //! active torque unit vectors and magnitudes for each particle type
 
-    // by each particle
+    // instantaneous values compute for each particle
     GlobalVector<Scalar> m_tumble_rate; //! tumble rate for each particle
     GlobalVector<Scalar> m_U;
-    // these are now moved to particle data
+    GlobalVector<Scalar> m_c; // c_old
+    // these are now moved to particle data, because they have memory
     // GlobalVector<Scalar> m_QH;
     // GlobalVector<Scalar> m_QT;
     // GlobalVector<Scalar> m_S;
-    GlobalVector<Scalar> m_c; // c_old
 
     Scalar m_dt;
-    bool m_kinesis;
+    bool m_klinokinesis;
+    bool m_orthokinesis;
     // by type:
     Scalar* m_kT1;
     Scalar* m_kT2;
