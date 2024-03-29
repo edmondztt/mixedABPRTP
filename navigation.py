@@ -64,20 +64,23 @@ DR = 0.1
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
-Q0 = float(sys.argv[3])
-Q1 = float(sys.argv[4])
-kT2 = float(sys.argv[5])
-kH2 = float(sys.argv[6])
-kS2 = float(sys.argv[7])
-if_taxis = (sys.argv[8]=="true")
-if_klinokinesis = (sys.argv[9]=="true")
-if_orthokinesis = (sys.argv[10]=="true")
+gamma0_inv = int(sys.argv[3])
+Q0 = float(sys.argv[4])
+Q1 = float(sys.argv[5])
+kT2 = float(sys.argv[6])
+kH2 = float(sys.argv[7])
+kS2 = float(sys.argv[8])
+if_taxis = (sys.argv[9]=="true")
+if_klinokinesis = (sys.argv[10]=="true")
+if_orthokinesis = (sys.argv[11]=="true")
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 
-gamma0 = 1/ 15.0
-large_plate = True
+gamma0_inv = 15
+
+gamma0 = 1 / gamma0_inv
+large_plate = False
 
 if large_plate:
     rmax = 40 # 40 mm radius for large dist
@@ -90,16 +93,15 @@ else:
     c_filename = "new_dilute_c_crosssection_agar_long.txt"
     root_path = "data/"
 
-if if_taxis:
-    path = root_path+"taxis_"
+path = root_path
 if if_klinokinesis:
-    path = root_path+"kk_"
+    path += "kk_"
 else:
-    path = root_path+"kr_"
+    path += "kr_"
 if if_orthokinesis:
-    path = root_path+"ok_"
+    path += "ok_"
 else:
-    path = root_path+"or_"
+    path += "or_"
 
 noise_Q = 0.01
 print("N=",N_particles,", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
