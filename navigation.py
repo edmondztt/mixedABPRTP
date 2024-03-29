@@ -160,7 +160,7 @@ integrator.methods.append(overdamped_viscous)
 # integrator.methods.append(nvt)
 
 
-mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=30*2, 
+mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2, 
                     is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
