@@ -73,14 +73,15 @@ kS2 = float(sys.argv[8])
 if_taxis = (sys.argv[9]=="true")
 if_klinokinesis = (sys.argv[10]=="true")
 if_orthokinesis = (sys.argv[11]=="true")
+if_large = (sys.argv[12]=="true")
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
+print("if_large=", if_large)
 
 gamma0 = 1 / gamma0_inv
-large_plate = False
 
-if large_plate:
+if if_large:
     rmax = 40 # 40 mm radius for large dist
     X0 = 25 # for large dist symm setting
     c_filename = "large_dist_c_crosssection_agar_long.txt"
