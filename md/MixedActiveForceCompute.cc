@@ -848,7 +848,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = 0.3*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
+        c_term = 0.2*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         // c_term = (c_new - m_c0_PHD[typ]);
         // c_term = (c_term>0) ? 1 : 0;
         break;
@@ -870,13 +870,15 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ){
-    Scalar U0, U1, Q1;
+    Scalar U0, U1, Q0;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    U = U0 + U1 * tanh(QH-QT) / tanh(1.0); 
+    Q0 = m_Q0[typ];
+    U = U0 + U1 * tanh(QH-QT) / tanh(Q0); 
     // QT should saturate to 1 to make it more symmetric around mean U0. 
-    // If QH=0, QT=1, U=U0-U1. 
-    // if QH=1, QT=0, U=U0.
+    // If QH=0, QT=1, U=U0-U1.
+    // if QH = QT = 1, U=U0. 
+    // if QH=1, QT=0, U=U0+U1.
     // if QH=2, QT=1, U=U0+U1.
 }
 

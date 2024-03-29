@@ -4,15 +4,15 @@ tail -n +2 parameters.csv > tmp
 
 python_script="navigation.py"
 
-while IFS=, read -r Np runtime gamma0_inv Q0 Q1 kT2 kH2 kS2 iftaxis ifkk ifok iflarge
+while IFS=, read -r Np runtime Q0 kHT2 iftaxis ifkk ifok iflarge
 do
-    echo "Running ${python_script} with parameters: $Np $runtime $gamma0_inv $Q0 $Q1 $kT2 $kH2 $kS2 $iftaxis $ifkk $ifok $iflarge"
+    echo "Running ${python_script} with parameters: $Np $runtime $Q0 $kHT2 $iftaxis $ifkk $ifok $iflarge"
 
     source /home/wanxuan/venvpheromone/bin/activate
     # Run the Python script with parameters
-    logname="log${Np}-${runtime}-${gamma0_inv}-${Q0}-${Q1}-${kT2}-${kH2}-${kS2}-${iftaxis}-${ifkk}-${ifok}-${iflarge}"
+    logname="log${Np}-${runtime}-${gamma0_inv}-${Q0}-${kHT2}-${iftaxis}-${ifkk}-${ifok}-${iflarge}"
     echo "logname is ${logname}"
-    nohup python -u "$python_script" "$Np" "$runtime" "$gamma0_inv" "$Q0" "$Q1" "$kT2" "$kH2" "$kS2" "$iftaxis" "$ifkk" "$ifok" "$iflarge" > ${logname} &
+    nohup python -u "$python_script" "$Np" "$runtime" "$Q0" "$kHT2" "$iftaxis" "$ifkk" "$ifok" "$iflarge" > ${logname} &
 
     # Wait for the Python script to finish
     # wait

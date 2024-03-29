@@ -64,32 +64,32 @@ DR = 0.1
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
-gamma0_inv = int(sys.argv[3])
-Q0 = float(sys.argv[4])
-Q1 = float(sys.argv[5])
-kT2 = float(sys.argv[6])
-kH2 = float(sys.argv[7])
-kS2 = float(sys.argv[8])
-if_taxis = (sys.argv[9]=="true")
-if_klinokinesis = (sys.argv[10]=="true")
-if_orthokinesis = (sys.argv[11]=="true")
-if_large = (sys.argv[12]=="true")
+Q0 = float(sys.argv[3])
+kHT2 = float(sys.argv[4])
+if_taxis = (sys.argv[5]=="true")
+if_klinokinesis = (sys.argv[6]=="true")
+if_orthokinesis = (sys.argv[7]=="true")
+if_large = (sys.argv[8]=="true")
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 print("if_large=", if_large)
 
+gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
+Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
+kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
 
 if if_large:
     rmax = 40 # 40 mm radius for large dist
-    X0 = 25 # for large dist symm setting
-    c_filename = "large_dist_c_crosssection_agar_long.txt"
+    # X0 = 25 # for large dist symm setting case 2
+    X0 = 0
+    c_filename = "large_dist_c_crosssection_agar8.5mm_83min.txt"
     root_path = "data-large-dist/"
 else:
     rmax = 30 # 30 mm radius for dilute
-    X0 = 7.5 # initial position # for small plate
-    c_filename = "new_dilute_c_crosssection_agar_long.txt"
+    X0 = 0
+    c_filename = "dilute_c_crosssection_agar8.5mm_83min.txt"
     root_path = "data/"
 
 path = root_path
@@ -108,9 +108,10 @@ else:
 
 
 noise_Q = 0.01
-print("N=",N_particles,", gamma0_inv=", gamma0_inv, ", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
+L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
+print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_gamma0inv{10:.1f}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkk{8}_ifok{9}.gsd".format(N_particles, runtime, Q0, Q1, kT2, kH2, kS2, if_taxis, if_klinokinesis, if_orthokinesis, gamma0_inv)
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_iftaxis{4}_ifkk{5}_ifok{6}.gsd".format(N_particles, runtime, Q0, kHT2, if_taxis, if_klinokinesis, if_orthokinesis)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -126,8 +127,8 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = np.random.rand(N_particles)*20+X0-10
-        Y = np.random.rand(N_particles)*20-10
+        X = L0*(np.random.rand(N_particles)-0.5)+X0
+        Y = L0*(np.random.rand(N_particles)-0.5)
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         frame = gsd.hoomd.Frame()
@@ -165,7 +166,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
                     is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kT2, kH1 = 1.0/60.0, kH2=kH2,
+mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kHT2, kH1 = 1.0/60.0, kH2=kHT2,
         kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.064, U1=0.05, gamma0=gamma0, 
         c0_PHD = 1e-6, sigma_QC=2.5)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
