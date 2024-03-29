@@ -881,7 +881,7 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     // Q1 = m_Q1[typ];
-    U = U0 + U1 * tanh(QH-QT);
+    U = U0 + U1 * tanh(QH-QT*3); // make it more symmetric around mean U0
 }
 
 void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsigned int ptag){
@@ -889,8 +889,8 @@ void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsig
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,ptag,m_sysdef->getSeed()), hoomd::Counter(ptag));
-    Scalar fluctuation = hoomd::UniformDistribution<Scalar>(-0.2, 1)(rng);
-    U = U0 + U1 * fluctuation;
+    U = hoomd::NormalDistribution<Scalar>(U0/3, U0)(rng);
+    U = (U>0.0) ? U : 0.0;
 }
 
 void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ){
