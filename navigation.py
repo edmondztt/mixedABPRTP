@@ -77,9 +77,19 @@ print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 
 gamma0 = 1/ 15.0
+large_plate = True
 
-# root_path = "/mnt/c/Users/wanxu/pheromone-modeling/"
-root_path = "data/"
+if large_plate:
+    rmax = 40 # 40 mm radius for large dist
+    X0 = 25 # for large dist symm setting
+    c_filename = "large_dist_c_crosssection_agar_long.txt"
+    root_path = "data-large-dist/"
+else:
+    rmax = 30 # 30 mm radius for dilute
+    X0 = 7.5 # initial position # for small plate
+    c_filename = "new_dilute_c_crosssection_agar_long.txt"
+    root_path = "data/"
+
 if if_taxis:
     path = root_path+"taxis_"
 if if_klinokinesis:
@@ -104,9 +114,8 @@ simulation = hoomd.Simulation(device=cpu, seed=1)
 
 dr = 0.1
 dtheta = np.pi/180
-rmax = 30 # 30 mm radius for dilute
 
-X0 = 7.5 # initial position
+
 
 flag_continue = False
 if(not os.path.exists(gsd_filename)):
@@ -216,7 +225,6 @@ last_output = init_time
 
 simulation.run(0) # have to first do run(0) so that the mixed_active cpp_obj is attached and then we can call cpp methods of it
 
-c_filename = "new_dilute_c_crosssection_agar_long.txt"
 print("now read from c file")
 mixed_active.set_concentration_field_file(c_filename)
 
