@@ -77,8 +77,6 @@ print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 
-gamma0_inv = 15
-
 gamma0 = 1 / gamma0_inv
 large_plate = False
 
@@ -102,21 +100,21 @@ if if_orthokinesis:
     path += "ok_"
 else:
     path += "or_"
+if if_taxis:
+    path += "taxis_"
+else:
+    path += "notaxis_"
+
 
 noise_Q = 0.01
-print("N=",N_particles,", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
+print("N=",N_particles,", gamma0_inv=", gamma0_inv, ", Q0=",Q0,", Q1=",Q1,", kT2=",kT2,", kH2=",kH2,", kS2=",kS2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkk{8}_ifok{9}.gsd".format(N_particles, runtime,
-    Q0, Q1, kT2, kH2, kS2, if_taxis, if_klinokinesis, if_orthokinesis)
+gsd_filename = path + "N{0}_runtime{1}_gamma0inv{10:.1f}_Q0{2:.2f}_Q1{3:.2f}_kT2{4:.2f}_kH2{5:.2f}_kS2{6:.2f}_iftaxis{7}_ifkk{8}_ifok{9}.gsd".format(N_particles, runtime, Q0, Q1, kT2, kH2, kS2, if_taxis, if_klinokinesis, if_orthokinesis, gamma0_inv)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
 cpu = hoomd.device.CPU()
 simulation = hoomd.Simulation(device=cpu, seed=1)
-
-dr = 0.1
-dtheta = np.pi/180
-
 
 
 flag_continue = False
@@ -201,7 +199,7 @@ integrator.forces.append(mixed_active)
 simulation.operations.integrator = integrator
 
 
-update_every_n = 30
+update_every_n = 10
 simulation.operations.writers.append(
     hoomd.write.CustomWriter(
         action = print_sim_state(),

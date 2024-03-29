@@ -577,30 +577,28 @@ void MixedActiveForceCompute::tumble(Scalar tumble_angle_gauss_spread, uint64_t 
 void MixedActiveForceCompute::random_turn(uint64_t period, uint64_t timestep){
     //  array handles
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
 
-    assert(h_tumble_rate.data != NULL);
     assert(h_orientation.data != NULL);
     assert(h_tag.data != NULL);
 
     Scalar time_elapse = m_deltaT * period;
+    Scalar gamma;
+    unsigned int idx, ptag, typ;
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
-        unsigned int idx = m_group->getMemberIndex(i);
-
-        if (h_tumble_rate.data[idx] != 0){
-            unsigned int ptag = h_tag.data[idx];
-            hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
-                                                   timestep,
-                                                   m_sysdef->getSeed()),
-                                       hoomd::Counter(ptag));
+        idx = m_group->getMemberIndex(i);
+        typ = h_pos.data[idx].w;
+        gamma = m_gamma0[typ];
+        if (gamma != 0){
+            ptag = h_tag.data[idx];
+            hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
 
             // now decide whether to tumble at this timestep
-            if(!should_tumble(h_tumble_rate.data[idx], time_elapse, rng)){
+            if(!should_tumble(gamma, time_elapse, rng)){
                 continue;
             }
 
@@ -697,16 +695,11 @@ void MixedActiveForceCompute::taxisturn(uint64_t timestep)
 void MixedActiveForceCompute::random_taxis_turn(uint64_t period, uint64_t timestep){
     //  array handles
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
-
-    assert(h_tumble_rate.data != NULL);
-    assert(h_orientation.data != NULL);
-    assert(h_tag.data != NULL);
 
     Scalar time_elapse = m_deltaT * period;
     Scalar tmpQ, gamma, c_new, c_old;
@@ -718,7 +711,7 @@ void MixedActiveForceCompute::random_taxis_turn(uint64_t period, uint64_t timest
         typ = __scalar_as_int(h_pos.data[idx].w);
         tmpQ = h_QS.data[idx].x + h_QS.data[idx].y;
         pos = h_pos.data[idx];
-        gamma = h_tumble_rate.data[idx];
+        gamma = m_gamma0[typ];
         ptag = h_tag.data[idx];
         
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
@@ -880,8 +873,11 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned
     Scalar U0, U1, Q1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    // Q1 = m_Q1[typ];
-    U = U0 + U1 * tanh(QH-QT*3); // make it more symmetric around mean U0
+    U = U0 + U1 * tanh(QH-QT) / tanh(1.0); 
+    // QT should saturate to 1 to make it more symmetric around mean U0. 
+    // If QH=0, QT=1, U=U0-U1. 
+    // if QH=1, QT=0, U=U0.
+    // if QH=2, QT=1, U=U0+U1.
 }
 
 void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsigned int ptag){
@@ -897,7 +893,7 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     Scalar Q0, gamma0;
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
-    gamma = gamma0/2.0 * (1 - tanh(Q-Q0));
+    gamma = gamma0 * (1 - tanh(Q-Q0)) / (1 + tanh(Q0)); // so that when Q=0 gamma=gamma0
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
@@ -956,8 +952,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
-        // QT = QT > m_Q0[typ] ? m_Q0[typ] : QT;
-        QT = QT > 0.2 ? 0.2 : QT; // let tail confidence saturate at 0.2
+        QT = QT > 1.0 ? 1.0 : QT; // let tail confidence saturate at 1.0. QH doesn't need to saturate
         
         update_S(S, QH + QT, typ);
         
@@ -982,8 +977,6 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_QS.data[idx].z = S;
         h_U.data[idx] = U;
         
-        // if(timestep%10000==0)
-        //     printf("now at timestep %d, part %d type %d:  c_new=%g, h_c=%g, h_U=%g, updated QH=%g,QT=%g,gamma=%g,S=%g, U=%g after update dynamical\n", timestep, idx, typ, c_new, h_c.data[idx], h_U.data[idx], QH, QT, gamma, S, U);
     }
     // printf("\n\n");
 }
