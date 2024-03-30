@@ -70,10 +70,12 @@ if_taxis = (sys.argv[5]=="true")
 if_klinokinesis = (sys.argv[6]=="true")
 if_orthokinesis = (sys.argv[7]=="true")
 if_large = (sys.argv[8]=="true")
+depth = sys.argv[9]
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 print("if_large=", if_large)
+print("depth=", depth)
 
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
@@ -84,13 +86,15 @@ if if_large:
     rmax = 40 # 40 mm radius for large dist
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
-    c_filename = "large_dist_c_crosssection_agar8.5mm_83min.txt"
+    c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data-large-dist/"
 else:
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
-    c_filename = "dilute_c_crosssection_agar8.5mm_83min.txt"
+    c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/"
+
+root_path += "agar"+str(depth)+"mm/"
 
 path = root_path
 if if_klinokinesis:
@@ -111,7 +115,7 @@ noise_Q = 0.01
 L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_iftaxis{4}_ifkk{5}_ifok{6}.gsd".format(N_particles, runtime, Q0, kHT2, if_taxis, if_klinokinesis, if_orthokinesis)
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_iftaxis{4}_ifkk{5}_ifok{6}_depth{7}mm.gsd".format(N_particles, runtime, Q0, kHT2, if_taxis, if_klinokinesis, if_orthokinesis,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
