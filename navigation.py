@@ -87,14 +87,16 @@ if if_large:
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
     c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data-large-dist/"
+    root_path = "data/large/"
 else:
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data/"
+    root_path = "data/dilute/"
 
 root_path += "agar"+str(depth)+"mm/"
+if not os.path.exists(root_path):
+    os.makedirs(root_path, exist_ok=True)
 
 path = root_path
 if if_klinokinesis:
