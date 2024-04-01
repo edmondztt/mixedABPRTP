@@ -5,8 +5,8 @@ import numpy as np
 
 Np = int(100)
 runtime = 1800
-Q0 = 1.0
-kHT20 = 1.0/15
+Q0 = 0.5
+kHT20 = 1.0/30
 # now use the same accumulation rate for H & T
 gamma0_inv = 15
 iftaxis = "true"
@@ -16,8 +16,9 @@ ifok = "true"
 fname = 'parameters.csv'
 with open(fname, 'w') as f:
     f.write('# N_particles runtime Q0 kHT2 iftaxis ifkk ifok iflarge depth\n')
-    for Np in [100, 10000]:
-        for k2factor in np.array([1.0, 2.0, 4.0, 8.0]):
+    # for Np in [100, 10000]:
+    for Np in [100]:
+        for k2factor in np.array([1.0, 2.0, 4.0, 8.0, 16.0]):
                 kHT2 = kHT20 * k2factor
                 for if_large in ["false", "true"]:
                     for ifok in ["false","true"]:
