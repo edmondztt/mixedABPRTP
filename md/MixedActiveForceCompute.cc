@@ -867,7 +867,7 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
     S -= m_deltaT*(k1 * S + k2*(Q-0.3));
 }
 
-void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned int typ){
+void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
     Scalar U0, U1, Q0;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
@@ -959,14 +959,14 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         update_S(S, QH + QT, typ);
         
         if(m_orthokinesis){
-            update_U(U, QH, QT, typ);
+            update_U(U, QH - QT, typ);
         }
         else{
             update_U_random(U, typ, ptag);
         }
         
         if(m_klinokinesis){
-            update_tumble_rate(gamma, QH+QT, typ);
+            update_tumble_rate(gamma, QH-QT, typ);
         }
         else{
             gamma = m_gamma0[typ];
