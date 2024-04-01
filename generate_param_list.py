@@ -6,7 +6,8 @@ import numpy as np
 Np = int(100)
 runtime = 1800
 Q0 = 0.5
-kHT20 = 1.0/30
+# sensory suppose to be faster than memory decay time
+kHT20 = 1.0
 # now use the same accumulation rate for H & T
 gamma0_inv = 15
 iftaxis = "true"
@@ -19,7 +20,7 @@ with open(fname, 'w') as f:
     # for Np in [100, 10000]:
     for Np in [100]:
         for Q0 in [0.5, 1.0, 0.2]:
-            for k2factor in np.array([0.25, 1.0, 4.0, 16.0]):
+            for k2factor in np.array([0.2, 1.0, 5.0]):
                     kHT2 = kHT20 * k2factor
                     # for if_large in ["false", "true"]:
                     for if_large in ["false"]:

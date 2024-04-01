@@ -627,6 +627,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
+        // from optogenetic exp: when both H&T stimed, goes forward
         c_term = 0.5 * exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QT[typ],2.0));
         break;
     }
@@ -733,7 +734,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
-        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. QH doesn't need to saturate
+        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
+        QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
         
         update_S(S, QH + QT, typ);
         

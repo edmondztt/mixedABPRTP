@@ -81,7 +81,7 @@ gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
 noise_Q = 0.01
 # both head and tail memory timescale is measured by their effects on AVA motor.
-# the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory
+# the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
 kT1 = 1.0/10.0
 kH1 = 1.0/10.0
 U0 = 0.064
