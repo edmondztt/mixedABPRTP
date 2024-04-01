@@ -60,7 +60,7 @@ def rand_unit_quaternion(N, threeD=False):
 
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
-DR = 0.1
+DR = 1/30
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
@@ -79,8 +79,25 @@ print("depth=", depth)
 
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
+noise_Q = 0.01
+# both head and tail memory timescale is measured by their effects on AVA motor.
+# the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory
+kT1 = 1.0/10.0
+kH1 = 1.0/10.0
+U0 = 0.064
+U1 = 0.03
+sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
+sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor
+c0 = 1e-6
+timescale_across_plate = 30 / U0
+dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
+
+L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
+
 Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
+kS1 = 1/300 # now we do not use S really. temporarily kept here for interface legacy
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
+print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
 
 if if_large:
     rmax = 40 # 40 mm radius for large dist
@@ -112,10 +129,6 @@ if if_taxis:
 else:
     path += "notaxis_"
 
-
-noise_Q = 0.01
-L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
-print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
 
 gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_iftaxis{5}_ifkk{6}_ifok{7}_depth{8}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, if_taxis, if_klinokinesis, if_orthokinesis,depth)
 print("gsd fname = ", gsd_filename)
@@ -172,9 +185,9 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
                     is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kHT2, kH1 = 1.0/60.0, kH2=kHT2,
-        kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.064, U1=0.05, gamma0=gamma0, 
-        c0_PHD = 1e-6, sigma_QC=2.0)
+mixed_active.params['A'] = dict(kT1=kT1, kT2=kHT2, kH1=kH1, kH2=kHT2,
+        kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
+        c0_PHD=c0, dc0=dc0, sigma_QH=sigma_QH, sigma_QT=sigma_QT)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
 # mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.

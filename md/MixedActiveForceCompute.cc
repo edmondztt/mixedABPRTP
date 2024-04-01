@@ -119,7 +119,9 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     m_U1 = new Scalar[m_pdata->getNTypes()];
     m_gamma0 = new Scalar[m_pdata->getNTypes()];
     m_c0_PHD = new Scalar[m_pdata->getNTypes()];
-    m_sigma_QC = new Scalar[m_pdata->getNTypes()];
+    m_dc0 = new Scalar[m_pdata->getNTypes()];
+    m_sigma_QH = new Scalar[m_pdata->getNTypes()];
+    m_sigma_QT = new Scalar[m_pdata->getNTypes()];
 
 #if defined(ENABLE_HIP) && defined(__HIP_PLATFORM_NVCC__)
     if (m_exec_conf->isCUDAEnabled() && m_exec_conf->allConcurrentManagedAccess())
@@ -160,7 +162,9 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     delete[] m_U1;
     delete[] m_gamma0;
     delete[] m_c0_PHD;
-    delete[] m_sigma_QC;
+    delete[] m_dc0;
+    delete[] m_sigma_QH;
+    delete[] m_sigma_QT;
 
     m_kT1 = NULL;
     m_kT2 = NULL;
@@ -175,7 +179,9 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     m_U1 = NULL;
     m_gamma0 = NULL;
     m_c0_PHD = NULL;
-    m_sigma_QC = NULL;
+    m_dc0 = NULL;
+    m_sigma_QH = NULL;
+    m_sigma_QT = NULL;
 
     }
 
@@ -308,7 +314,9 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     Scalar U1,
     Scalar gamma0,
     Scalar c0_PHD,
-    Scalar sigma_QC){
+    Scalar dc0,
+    Scalar sigma_QH,
+    Scalar sigma_QT){
     // make sure the type is valid
     if (type >= m_pdata->getNTypes()){
         throw std::invalid_argument("Type does not exist");
@@ -326,7 +334,9 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_U1[type] = U1;
     m_gamma0[type] = gamma0;
     m_c0_PHD[type] = c0_PHD;
-    m_sigma_QC[type] = sigma_QC;
+    m_dc0[type] = dc0;
+    m_sigma_QH[type] = sigma_QH;
+    m_sigma_QT[type] = sigma_QT;
 }
 
 void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict params){
@@ -345,7 +355,9 @@ void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict p
     _params.U1,
     _params.gamma0,
     _params.c0_PHD,
-    _params.sigma_QC);
+    _params.dc0,
+    _params.sigma_QH,
+    _params.sigma_QT);
     }
 
 pybind11::dict MixedActiveForceCompute::getParams(std::string type){
@@ -369,7 +381,9 @@ pybind11::dict MixedActiveForceCompute::getParams(std::string type){
     params["U1"] = m_U1[typ];
     params["gamma0"] = m_gamma0[typ];
     params["c0_PHD"] = m_c0_PHD[typ];
-    params["sigma_QC"] = m_sigma_QC[typ];
+    params["dc0"] = m_dc0[typ];
+    params["sigma_QH"] = m_sigma_QH[typ];
+    params["sigma_QT"] = m_sigma_QT[typ];
 
     return params;
     }
@@ -603,7 +617,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = (c_term>m_c0_PHD[typ]) ? 1.0 : exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
+        c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
         break;
     }
     case m_FLAG_QT: {
@@ -613,7 +627,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
+        c_term = 0.5 * exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QT[typ],2.0));
         break;
     }
     default:

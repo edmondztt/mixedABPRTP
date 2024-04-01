@@ -320,11 +320,13 @@ struct __attribute__((aligned(16))) mixedactive_params {
     Scalar U1;
     Scalar gamma0;
     Scalar c0_PHD;
-    Scalar sigma_QC;
+    Scalar dc0;
+    Scalar sigma_QH;
+    Scalar sigma_QT;
 
 #ifndef __HIPCC__
     mixedactive_params() : kT1(1.0/600),kT2(1.0),kH1(0.1),kH2(1.0),kS1(1.0/30),
-    kS2(0.1),Q0(0.3),Q1(10.0),noise_Q(0.02),U0(0.2),U1(0.1),gamma0(0.1),c0_PHD(1e-6),sigma_QC(2.5) { }
+    kS2(0.1),Q0(0.3),Q1(10.0),noise_Q(0.02),U0(0.2),U1(0.1),gamma0(0.1),c0_PHD(1e-6), dc0(1e-8), sigma_QH(6.0), sigma_QT(2.0) { }
     mixedactive_params(pybind11::dict params)
         : kT1(params["kT1"].cast<Scalar>()), kT2(params["kT2"].cast<Scalar>()),
         kH1(params["kH1"].cast<Scalar>()), kH2(params["kH2"].cast<Scalar>()),
@@ -332,8 +334,8 @@ struct __attribute__((aligned(16))) mixedactive_params {
         Q0(params["Q0"].cast<Scalar>()), Q1(params["Q1"].cast<Scalar>()),
         noise_Q(params["noise_Q"].cast<Scalar>()), 
         U0(params["U0"].cast<Scalar>()), U1(params["U1"].cast<Scalar>()),
-        gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>()),
-        sigma_QC(params["sigma_QC"].cast<Scalar>())
+        gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>()), dc0(params["dc0"].cast<Scalar>()),
+        sigma_QH(params["sigma_QH"].cast<Scalar>()), sigma_QT(params["sigma_QT"].cast<Scalar>())
         {
         }
 
@@ -353,7 +355,9 @@ struct __attribute__((aligned(16))) mixedactive_params {
         v["U1"] = U1;
         v["gamma0"] = gamma0;
         v["c0_PHD"] = c0_PHD;
-        v["sigma_QC"] = sigma_QC;
+        v["dc0"] = dc0;
+        v["sigma_QH"] = sigma_QH;
+        v["sigma_QT"] = sigma_QT;
         return v;
         }
 #endif
@@ -404,7 +408,9 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar m_U1,
     Scalar m_gamma0,
     Scalar m_c0_PHD, 
-    Scalar m_sigma_QC);
+    Scalar m_dc0,
+    Scalar m_sigma_QH,
+    Scalar m_sigma_QT);
 
     virtual void setParamsPython(std::string type, pybind11::dict params);
 
@@ -479,7 +485,9 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar* m_U1;
     Scalar* m_gamma0;
     Scalar* m_c0_PHD;
-    Scalar* m_sigma_QC;
+    Scalar* m_dc0;
+    Scalar* m_sigma_QH;
+    Scalar* m_sigma_QT;
 
     std::unique_ptr<RectGridData> m_grid_data;
 
