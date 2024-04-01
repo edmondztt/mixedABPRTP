@@ -19,13 +19,16 @@ with open(fname, 'w') as f:
     f.write('# N_particles runtime Q0 kHT2 iftaxis ifkk ifok iflarge depth\n')
     # for Np in [100, 10000]:
     for Np in [100]:
-        for Q0 in [0.5, 1.0, 0.2]:
+        # for Q0 in [0.5, 1.0, 0.2]:
+        for Q0 in [0.5, 1.0]:
             for k2factor in np.array([0.2, 1.0, 5.0]):
                     kHT2 = kHT20 * k2factor
                     # for if_large in ["false", "true"]:
                     for if_large in ["false"]:
-                        for ifok in ["false","true"]:
-                            for ifkk in ["false","true"]:
+                        # for ifok in ["false","true"]:
+                        for ifok in ["true"]:
+                            # for ifkk in ["false","true"]:
+                            for ifkk in ["true"]:
                                 # for iftaxis in ["false","true"]:
                                 for iftaxis in ["true"]:
                                     for depth in ["8.5", "8.9"]:
