@@ -540,7 +540,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
 
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         
-        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y + *hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D

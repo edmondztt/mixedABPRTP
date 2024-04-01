@@ -117,7 +117,7 @@ noise_Q = 0.01
 L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_iftaxis{4}_ifkk{5}_ifok{6}_depth{7}mm.gsd".format(N_particles, runtime, Q0, kHT2, if_taxis, if_klinokinesis, if_orthokinesis,depth)
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_iftaxis{5}_ifkk{6}_ifok{7}_depth{8}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, if_taxis, if_klinokinesis, if_orthokinesis,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
