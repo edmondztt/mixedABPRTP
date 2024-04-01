@@ -90,8 +90,9 @@ U1 = 0.03
 sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor
 c0 = 1e-6
-timescale_across_plate = 30 / U0
-dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
+dc0 = 1e-6 / 1 # take this as the typical c change rate
+# timescale_across_plate = 30 / U0
+# dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
 
 L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 

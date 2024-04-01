@@ -617,7 +617,8 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
+        // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
+        c_term = 1+tanh(log10(c_term/m_dc0[typ]));
         break;
     }
     case m_FLAG_QT: {
