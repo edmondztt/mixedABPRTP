@@ -872,7 +872,7 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     Q0 = m_Q0[typ];
-    U = U0 + U1 * tanh(QH-QT) / tanh(Q0); 
+    U = U0 + U1 * tanh(Q) / tanh(Q0); 
     // QT should saturate to 1 to make it more symmetric around mean U0. 
     // If QH=0, QT=Q0, U=U0-U1.
     // if QH = QT = Q0, U=U0. 
