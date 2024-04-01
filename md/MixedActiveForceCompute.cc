@@ -738,7 +738,7 @@ void MixedActiveForceCompute::random_taxis_turn(uint64_t period, uint64_t timest
             Scalar gradx, grady; 
             gradx = cgrad.x; grady = cgrad.y;
             Scalar theta_taxis = atan2(grady, gradx);
-            Scalar frac_taxis = tmpQ/1.2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 1.2, as QT saturates to 0.2, and QH saturates to about 1.0.
+            Scalar frac_taxis = tmpQ/2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 2., as QT saturates to Q0=0.5, and QH saturates to about 1.3.
             Scalar theta_mixture = theta_taxis * std::min(frac_taxis,1.0) + theta_random * std::max(1.0-frac_taxis, 0.0);
 
             vec3<Scalar> b(0, 0, 1.0);
@@ -810,7 +810,7 @@ void MixedActiveForceCompute::general_turn(Scalar tumble_angle_gauss_spread, uin
             gradx = cgrad.x; grady = cgrad.y;
             Scalar theta_taxis = atan2(grady, gradx);
             Scalar theta_tumble = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
-            Scalar frac_taxis = tmpQ/1.2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 1.2, as QT saturates to 0.2, and QH saturates to about 1.0.
+            Scalar frac_taxis = tmpQ/2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 2., as QT saturates to Q0=0.5, and QH saturates to about 1.3.
             Scalar theta_mixture = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
 
             quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_mixture);
@@ -838,7 +838,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = (c_term>m_c0_PHD[typ]) ? 0.5 : 0.5*exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
+        c_term = (c_term>m_c0_PHD[typ]) ? 1.0 : exp(-pow(log(c_term/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         break;
     }
     case m_FLAG_QT: {
@@ -848,9 +848,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             c_term = 0.0;
             break;
         }
-        c_term = 0.2*exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
-        // c_term = (c_new - m_c0_PHD[typ]);
-        // c_term = (c_term>0) ? 1 : 0;
+        c_term = exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QC[typ],2.0));
         break;
     }
     default:
@@ -876,10 +874,10 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar QH, Scalar QT, unsigned
     Q0 = m_Q0[typ];
     U = U0 + U1 * tanh(QH-QT) / tanh(Q0); 
     // QT should saturate to 1 to make it more symmetric around mean U0. 
-    // If QH=0, QT=1, U=U0-U1.
-    // if QH = QT = 1, U=U0. 
-    // if QH=1, QT=0, U=U0+U1.
-    // if QH=2, QT=1, U=U0+U1.
+    // If QH=0, QT=Q0, U=U0-U1.
+    // if QH = QT = Q0, U=U0. 
+    // if QH=Q0, QT=0, U=U0+U1.
+    // if QH=1+Q0, QT=1, U=U0+U1.
 }
 
 void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsigned int ptag){
@@ -895,7 +893,9 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     Scalar Q0, gamma0;
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
-    gamma = gamma0 * (1 - tanh(Q-Q0)) / (1 + tanh(Q0)); // so that when Q=0 gamma=gamma0
+    gamma = gamma0 * (1 - tanh(Q-Q0)); 
+    // so that when Q=0 gamma=gamma0
+    // since QT saturate quickly to Q0, ignore the part where Q<Q0
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
@@ -954,7 +954,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
-        QT = QT > 1.0 ? 1.0 : QT; // let tail confidence saturate at 1.0. QH doesn't need to saturate
+        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. QH doesn't need to saturate
         
         update_S(S, QH + QT, typ);
         

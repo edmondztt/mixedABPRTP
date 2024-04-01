@@ -172,7 +172,7 @@ mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=1.0/600, kT2=kHT2, kH1 = 1.0/60.0, kH2=kHT2,
         kS1 = 1.0/300, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=0.064, U1=0.05, gamma0=gamma0, 
-        c0_PHD = 1e-6, sigma_QC=2.5)
+        c0_PHD = 1e-6, sigma_QC=2.0)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
 # mixed_active.kH1['A'] = 0.1 # Q head decays in 10 s.
