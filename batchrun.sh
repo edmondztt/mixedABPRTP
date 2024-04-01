@@ -19,8 +19,10 @@ do
     
     ((JOB_COUNT++))
     if [ "$JOB_COUNT" -ge $MAX_JOBS ]; then
+        echo "wait for current batch of $JOB_COUNT jobs to finish"
         wait # Wait for all background jobs to finish
         JOB_COUNT=0 # Reset the job count
+        echo "now launch next batch of jobs"
     fi
 
 done < tmp
