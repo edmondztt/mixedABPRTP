@@ -605,7 +605,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
     }
 }
 
-void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
+Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
     Scalar k1, k2, c_term;
 
     switch (FLAG_Q) {
@@ -618,7 +618,8 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
             break;
         }
         // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
-        c_term = 1+tanh(log10(c_term/m_dc0[typ]));
+        c_term = (c_term>m_dc0[typ]) ? 1.0 : (log10(c_term/m_dc0[typ])+3)/3;
+        c_term = max(0.0, c_term);
         break;
     }
     case m_FLAG_QT: {
@@ -638,7 +639,7 @@ void MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, in
     } 
 
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
-    return;
+    return c_term;
 }
 
 void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
@@ -711,7 +712,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
 
-    Scalar QH, QT, S, U, gamma, c_old, c_new; // c store the gradient in [0,1,2], absolute c in [3]
+    Scalar QH, QT, S, U, gamma, c_old, c_new, cterm; 
     unsigned int idx, typ, ptag;
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++)
@@ -733,8 +734,10 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // printf("now at timestep %d, part %d : c_old=%g. before compute new c\n", timestep, idx, c_old);
         c_new = compute_c_new(pos, timestep);
         // now evolve the dynamics
-        update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
-        update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
+        cterm = update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
+        h_tumble_rate.data[idx].z = cterm;
+        cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
+        h_tumble_rate.data[idx].w = cterm;
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
         QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
         
