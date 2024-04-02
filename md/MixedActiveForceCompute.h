@@ -460,7 +460,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
         m_t_activeVec; //! active torque unit vectors and magnitudes for each particle type
 
     // instantaneous values compute for each particle
-    GlobalVector<Scalar> m_tumble_rate; //! tumble rate for each particle
+    // GlobalVector<Scalar> m_tumble_rate; //! tumble rate for each particle
     GlobalVector<Scalar> m_U;
     GlobalVector<Scalar> m_c; // c_old
     // these are now moved to particle data, because they have memory

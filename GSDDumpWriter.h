@@ -151,12 +151,13 @@ class PYBIND11_EXPORT GSDDumpWriter : public Analyzer
             particles_angmom,
             particles_image,
             particles_confidence,
+            particles_tumble,
             };
         };
 
     /// Number of entires in the gsd_flag enum.
     // static const unsigned int n_gsd_flags = 14;
-    static const unsigned int n_gsd_flags = 15; // add confidence entry
+    static const unsigned int n_gsd_flags = 16; // add confidence and tumble entries 
 
     /// Store a GSD frame for writing.
     /** Local frames store particles local to the rank, sorted in ascending tag order.

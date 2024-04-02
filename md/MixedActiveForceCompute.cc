@@ -50,15 +50,15 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
 
     // allocate memory for the per-type tumble rate and initialize to 0.0
     unsigned int max_num_particles = m_pdata->getMaxN();
-    // tumble rate initialize
-    GlobalVector<Scalar> tmp_tumble_rate(max_num_particles, m_exec_conf);
-    m_tumble_rate.swap(tmp_tumble_rate);
-    TAG_ALLOCATION(m_tumble_rate);
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate,
-                                       access_location::host,
-                                       access_mode::overwrite);
-    for (unsigned int i = 0; i < m_tumble_rate.size(); i++)
-        h_tumble_rate.data[i] = 0.0;
+    // // tumble rate initialize
+    // GlobalVector<Scalar> tmp_tumble_rate(max_num_particles, m_exec_conf);
+    // m_tumble_rate.swap(tmp_tumble_rate);
+    // TAG_ALLOCATION(m_tumble_rate);
+    // ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate,
+    //                                    access_location::host,
+    //                                    access_mode::overwrite);
+    // for (unsigned int i = 0; i < m_tumble_rate.size(); i++)
+    //     h_tumble_rate.data[i] = 0.0;
     // U0 initialize
     GlobalVector<Scalar> tmp_U(max_num_particles, m_exec_conf);
     m_U.swap(tmp_U);
@@ -136,10 +136,10 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
                       cudaMemAdviseSetReadMostly,
                       0);
 
-        cudaMemAdvise(m_tumble_rate.get(),
-                      sizeof(Scalar) * m_tumble_rate.getNumElements(),
-                      cudaMemAdviseSetReadMostly,
-                      0);
+        // cudaMemAdvise(m_tumble_rate.get(),
+        //               sizeof(Scalar) * m_tumble_rate.getNumElements(),
+        //               cudaMemAdviseSetReadMostly,
+        //               0);
         }
 #endif
 
@@ -528,7 +528,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
     // if tumble_angle_gauss_spread<0 no klino kinesis
     //  array handles
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_tumble_rate(m_pdata->getTumbles(), access_location::host, access_mode::read);
     ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
                                        access_location::host,
                                        access_mode::readwrite);
@@ -563,8 +563,8 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             c_old = h_QS.data[idx].w;
             update_tumble_rate(gamma, tmpQ, typ);
             if(c_new<c_old){
-                gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]));
-                h_tumble_rate.data[idx] = gamma;
+                gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]))/2;
+                h_tumble_rate.data[idx].x = gamma;
             }
             // now decide whether to tumble at this timestep
             if(!should_tumble(gamma, time_elapse, rng)){
@@ -586,7 +586,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 Scalar gradx, grady; 
                 gradx = cgrad.x; grady = cgrad.y;
                 Scalar theta_taxis = atan2(grady, gradx);
-                Scalar frac_taxis = tmpQ/2; // linear mixture of taxis angle and the tumble angle. the total max Q should be about 2., as QT saturates to Q0=0.5, and QH saturates to about 1.3.
+                Scalar frac_taxis = tmpQ/(m_Q0[typ]*3); // linear mixture of taxis angle and the tumble angle. the total max Q should be about 2., as QT saturates to Q0=0.5, and QH saturates to about 1.3.
                 theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
@@ -706,7 +706,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
     //  array handles
     // printf("now at timestep %d: update dynamical parameters\n", timestep);
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
-    ArrayHandle<Scalar> h_tumble_rate(m_tumble_rate, access_location::host, access_mode::readwrite);
+    ArrayHandle<Scalar4> h_tumble_rate(m_pdata->getTumbles(), access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
     ArrayHandle<Scalar> h_U(m_U, access_location::host, access_mode::readwrite);
     ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
@@ -728,7 +728,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         QT = h_QS.data[idx].y;
         c_old = h_QS.data[idx].w;
         U = h_U.data[idx];
-        gamma = h_tumble_rate.data[idx];
+        gamma = h_tumble_rate.data[idx].x;
         Scalar4 pos = h_pos.data[idx];
         // printf("now at timestep %d, part %d : c_old=%g. before compute new c\n", timestep, idx, c_old);
         c_new = compute_c_new(pos, timestep);
@@ -753,7 +753,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         else{
             gamma = m_gamma0[typ];
         }
-        h_tumble_rate.data[idx] = gamma;
+        h_tumble_rate.data[idx].x = gamma;
+        h_tumble_rate.data[idx].y = U;
         // now update the device values
         h_QS.data[idx].w = c_new;
         h_QS.data[idx].x = QH;

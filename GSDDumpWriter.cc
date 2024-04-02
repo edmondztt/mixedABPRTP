@@ -30,6 +30,7 @@ std::list<std::string> GSDDumpWriter::particle_chunks {"particles/position",
                                                        "particles/diameter",
                                                        "particles/body",
                                                        "particles/moment_inertia",
+                                                       "particles/tumble",
                                                        "particles/confidence",
                                                        "particles/orientation",
                                                        "particles/velocity",
@@ -103,6 +104,10 @@ pybind11::tuple GSDDumpWriter::getDynamic()
         {
         result.append("particles/confidence");
         }
+    if (m_dynamic[gsd_flag::particles_tumble])
+        {
+        result.append("particles/tumble");
+        }
     if (m_dynamic[gsd_flag::particles_velocity])
         {
         result.append("particles/velocity");
@@ -147,6 +152,10 @@ pybind11::tuple GSDDumpWriter::getDynamic()
         {
         result.append("particles/confidence");
         }
+    if (m_dynamic[gsd_flag::particles_tumble])
+        {
+        result.append("particles/tumble");
+        }
     if (m_write_topology)
         {
         result.append("topology");
@@ -183,6 +192,10 @@ void GSDDumpWriter::setDynamic(pybind11::object dynamic)
         if (s == "particles/confidence" || s == "property")
             {
             m_dynamic[gsd_flag::particles_confidence] = true;
+            }
+        if (s == "particles/tumble" || s == "property")
+            {
+            m_dynamic[gsd_flag::particles_tumble] = true;
             }
         if (s == "particles/velocity" || s == "momentum")
             {
@@ -227,6 +240,10 @@ void GSDDumpWriter::setDynamic(pybind11::object dynamic)
         if (s == "particles/confidence" || s == "attribute")
             {
             m_dynamic[gsd_flag::particles_confidence] = true;
+            }
+        if (s == "particles/tumble" || s == "attribute")
+            {
+            m_dynamic[gsd_flag::particles_tumble] = true;
             }
         if (s == "topology")
             {
@@ -699,6 +716,23 @@ void GSDDumpWriter::writeProperties(const GSDDumpWriter::GSDFrame& frame)
         GSDUtils::checkError(retval, m_fname);
         if (m_nframes == 0)
             m_nondefault["particles/confidence"] = true;
+        }
+
+    if (frame.particle_data.tumble.size() != 0)
+        {
+        assert(frame.particle_data.tumble.size() == N);
+
+        m_exec_conf->msg->notice(10) << "GSD: writing particles/tumble" << endl;
+        retval = gsd_write_chunk(&m_handle,
+                                 "particles/tumble",
+                                 GSD_TYPE_FLOAT,
+                                 N,
+                                 4,
+                                 0,
+                                 (void*)frame.particle_data.tumble.data());
+        GSDUtils::checkError(retval, m_fname);
+        if (m_nframes == 0)
+            m_nondefault["particles/tumble"] = true;
         }
     }
 
@@ -1236,6 +1270,24 @@ void GSDDumpWriter::populateLocalFrame(GSDDumpWriter::GSDFrame& frame, uint64_t 
             }
         }
 
+    if (N > 0 && (m_dynamic[gsd_flag::particles_tumble] || m_nframes == 0))
+        {
+        ArrayHandle<Scalar4> h_tumble(m_pdata->getTumbles(),
+                                           access_location::host,
+                                           access_mode::read);
+        frame.particle_data_present[gsd_flag::particles_tumble] = true;
+
+        for (unsigned int index : m_index)
+            {
+            quat<Scalar> tumble(h_tumble.data[index]);
+            if (tumble.s != Scalar(0.0) || tumble.v.x != Scalar(0.0) || tumble.v.y != Scalar(0.0) ||tumble.v.z != Scalar(0.0) )
+                {
+                all_default[gsd_flag::particles_tumble] = false;
+                }
+            frame.particle_data.tumble.push_back(quat<float>(tumble));
+            }
+        }
+
     if (N > 0
         && (m_dynamic[gsd_flag::particles_velocity] || m_dynamic[gsd_flag::particles_mass]
             || m_nframes == 0))
@@ -1429,6 +1481,12 @@ void GSDDumpWriter::populateLocalFrame(GSDDumpWriter::GSDFrame& frame, uint64_t 
         {
         frame.particle_data.confidence.resize(0);
         frame.particle_data_present[gsd_flag::particles_confidence] = false;
+        }
+    if (all_default[gsd_flag::particles_tumble]
+        && !(m_nframes > 0 && m_nondefault["particles/tumble"]))
+        {
+        frame.particle_data.tumble.resize(0);
+        frame.particle_data_present[gsd_flag::particles_tumble] = false;
         }
 
     if (all_default[gsd_flag::particles_type]
