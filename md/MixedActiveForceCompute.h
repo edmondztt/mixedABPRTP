@@ -444,7 +444,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters(uint64_t timestep);
 
-    void update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
+    Scalar update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
     void update_S(Scalar &S, Scalar Q, unsigned int typ);
     void update_U(Scalar &U, Scalar Q, unsigned int typ);
     void update_U_random(Scalar &U, unsigned int typ, unsigned int ptag);

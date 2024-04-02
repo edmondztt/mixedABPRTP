@@ -619,7 +619,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         }
         // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
         c_term = (c_term>m_dc0[typ]) ? 1.0 : (log10(c_term/m_dc0[typ])+3)/3;
-        c_term = max(0.0, c_term);
+        c_term = std::max(0.0, c_term);
         break;
     }
     case m_FLAG_QT: {
@@ -635,7 +635,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
     }
     default:
         printf("FLAG_Q must be either for QH or QT!\n");
-        return;
+        return -1;
     } 
 
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
