@@ -21,16 +21,16 @@ with open(fname, 'w') as f:
     for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
         for Q0 in [0.5, 1.0]:
-            for k2factor in np.array([0.2, 1.0, 5.0]):
+            for k2factor in np.array([0.5, 1.0, 2.0, 5.0]):
                     kHT2 = kHT20 * k2factor
-                    # for if_large in ["false", "true"]:
-                    for if_large in ["false"]:
-                        # for ifok in ["false","true"]:
-                        for ifok in ["true"]:
-                            # for ifkk in ["false","true"]:
-                            for ifkk in ["true"]:
-                                # for iftaxis in ["false","true"]:
-                                for iftaxis in ["true"]:
+                    for if_large in ["false", "true"]:
+                    # for if_large in ["false"]:
+                        for ifok in ["false","true"]:
+                        # for ifok in ["true"]:
+                            for ifkk in ["false","true"]:
+                            # for ifkk in ["true"]:
+                                for iftaxis in ["false","true"]:
+                                # for iftaxis in ["true"]:
                                     for depth in ["8.5", "8.9"]:
                                         params = "{Np:d},{runtime:d},{Q0:.2f},{kHT2:.2f},{iftaxis},{ifkk},{ifok},{if_large},{depth}".format(
                                             Np=Np,runtime=runtime,

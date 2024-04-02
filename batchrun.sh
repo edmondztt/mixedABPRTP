@@ -47,6 +47,6 @@ done
 
 echo "n max = $n_max"
 
-#scp data/* tingtao@131.215.127.174:~/myhdd1/pheromone-modeling/data
+scp -r data/* tingtao@131.215.127.174:~/myhdd1/pheromone-modeling/data
 
 #mv parameters.csv "parameters.finished.$((n_max + 1)).csv"
