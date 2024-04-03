@@ -726,7 +726,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
             continue;
         }
         QH = h_QS.data[idx].x;
-        QT = h_QS.data[idx].y;
+        QT = 0.0;
+        // QT = h_QS.data[idx].y;
         c_old = h_QS.data[idx].w;
         U = h_U.data[idx];
         gamma = h_tumble_rate.data[idx].x;
@@ -736,9 +737,9 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // now evolve the dynamics
         cterm = update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
         h_tumble_rate.data[idx].z = cterm;
-        cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
-        h_tumble_rate.data[idx].w = cterm;
-        QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
+        // cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
+        // h_tumble_rate.data[idx].w = cterm;
+        // QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
         QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
         
         update_S(S, QH + QT, typ);
