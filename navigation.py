@@ -117,7 +117,7 @@ root_path += "agar"+str(depth)+"mm/"
 if not os.path.exists(root_path):
     os.makedirs(root_path, exist_ok=True)
 
-path = root_path
+path = root_path+'Honly_'
 if if_klinokinesis:
     path += "kk_"
 else:
