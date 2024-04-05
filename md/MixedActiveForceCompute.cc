@@ -567,7 +567,12 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
 
         if (m_sysdef->getNDimensions() == 2) // 2D
         {
-            update_tumble_rate(gamma, tmpQ, typ);
+            if(m_klinokinesis){
+                update_tumble_rate(gamma, tmpQ, typ);
+            }
+            else{
+                gamma = m_gamma0[typ];
+            }
             // c_new = compute_c_new(pos, timestep);
             // c_old = h_QS.data[idx].w;
             // if(c_new<c_old && tumble_angle_gauss_spread>0){
