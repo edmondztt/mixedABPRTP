@@ -7,15 +7,15 @@ JOB_COUNT=0
 
 python_script="navigation.py"
 
-while IFS=, read -r Np runtime Q0 kHT2 iftaxis ifkk ifok iflarge depth
+while IFS=, read -r Np runtime noise_Q kHT2 kortho iftaxis ifkk ifok iflarge depth
 do
-    echo "Running ${python_script} with parameters: $Np $runtime $Q0 $kHT2 $iftaxis $ifkk $ifok $iflarge $depth"
+    echo "Running ${python_script} with parameters: $Np $runtime $noise_Q $kHT2 $kortho $iftaxis $ifkk $ifok $iflarge $depth"
 
     source /home/wanxuan/venvpheromone/bin/activate
     # Run the Python script with parameters
-    logname="log${Np}-${runtime}-${Q0}-${kHT2}-${iftaxis}-${ifkk}-${ifok}-${iflarge}-${depth}"
+    logname="log${Np}-${runtime}-${noise_Q}-${kHT2}-${kortho}-${iftaxis}-${ifkk}-${ifok}-${iflarge}-${depth}"
     echo "logname is ${logname}"
-    nohup python -u "$python_script" "$Np" "$runtime" "$Q0" "$kHT2" "$iftaxis" "$ifkk" "$ifok" "$iflarge" "$depth" > ${logname} &
+    nohup python -u "$python_script" "$Np" "$runtime" "$noise_Q" "$kHT2" "$kortho" "$iftaxis" "$ifkk" "$ifok" "$iflarge" "$depth" > ${logname} &
     
     ((JOB_COUNT++))
     if [ "$JOB_COUNT" -ge $MAX_JOBS ]; then
