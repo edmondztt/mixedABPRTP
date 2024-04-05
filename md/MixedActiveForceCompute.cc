@@ -552,7 +552,8 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
         typ = __scalar_as_int(h_pos.data[idx].w);
         ptag = h_tag.data[idx];
 
-        hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
+        hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
+        timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         
         tmpQ = h_QS.data[idx].x + h_QS.data[idx].y + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
@@ -575,18 +576,26 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             Scalar theta_tumble;
             if (tumble_angle_gauss_spread<0)
             {
-                theta_tumble = hoomd::UniformDistribution<Scalar>(0, M_PI*2 )(rng);
+                theta_tumble = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
             }
             else{
                 theta_tumble = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
+                theta_tumble = (theta_tumble>M_PI) ? (M_PI - theta_tumble) : theta_tumble;
             }
+            // now theta_tumble is [-pi , pi]
             Scalar theta_turn;
             if(iftaxis){
                 Scalar3 cgrad = compute_c_grad(pos, timestep);
                 Scalar gradx, grady; 
                 gradx = cgrad.x; grady = cgrad.y;
                 Scalar theta_taxis = atan2(grady, gradx);
-                Scalar frac_taxis = tmpQ/(m_Q0[typ]*3); // linear mixture of taxis angle and the tumble angle. the total max Q should be about 2., as QT saturates to Q0=0.5, and QH saturates to about 1.3.
+                Scalar cosq, sinq, theta0;
+                cosq = h_orientation.data[idx].x;
+                sinq = h_orientation.data[idx].w;
+                theta0 = atan2(sinq,cosq)/2.0;
+                theta_taxis -= theta0;
+                // so that the angle to rotate falls in [-2pi, 2pi] 
+                Scalar frac_taxis = tmpQ/(m_Q0[typ]*3); // linear mixture of taxis angle and the tumble angle.
                 theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
@@ -760,10 +769,10 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_tumble_rate.data[idx].x = gamma;
         h_tumble_rate.data[idx].y = U;
         // now update the device values
-        h_QS.data[idx].w = c_new;
         h_QS.data[idx].x = QH;
         h_QS.data[idx].y = QT;
         h_QS.data[idx].z = S;
+        h_QS.data[idx].w = c_new;
         h_U.data[idx] = U;
         
     }

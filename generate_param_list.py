@@ -14,6 +14,7 @@ iftaxis = "true"
 ifkk = "true"
 ifok = "true"
 
+
 fname = 'parameters.csv'
 with open(fname, 'w') as f:
     f.write('# N_particles runtime Q0 kHT2 iftaxis ifkk ifok iflarge depth\n')

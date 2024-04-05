@@ -61,16 +61,16 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 DR = 1/30
-N_particles = sys.argv[1]
+N_particles = 1
 N_particles = int(N_particles)
-runtime = float(sys.argv[2])
-Q0 = float(sys.argv[3])
-kHT2 = float(sys.argv[4])
-if_taxis = (sys.argv[5]=="true")
-if_klinokinesis = (sys.argv[6]=="true")
-if_orthokinesis = (sys.argv[7]=="true")
-if_large = (sys.argv[8]=="true")
-depth = sys.argv[9]
+runtime = 1800
+Q0 = 1.00
+kHT2 = 1.00
+if_taxis = True
+if_klinokinesis = True
+if_orthokinesis = True
+if_large = False
+depth = 8.5
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
@@ -117,7 +117,7 @@ root_path += "agar"+str(depth)+"mm/"
 if not os.path.exists(root_path):
     os.makedirs(root_path, exist_ok=True)
 
-path = root_path+'Honly_'
+path = root_path
 if if_klinokinesis:
     path += "kk_"
 else:
@@ -132,7 +132,7 @@ else:
     path += "notaxis_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_iftaxis{5}_ifkk{6}_ifok{7}_depth{8}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, if_taxis, if_klinokinesis, if_orthokinesis,depth)
+gsd_filename = "testN{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_iftaxis{5}_ifkk{6}_ifok{7}_depth{8}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, if_taxis, if_klinokinesis, if_orthokinesis,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -148,18 +148,25 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        X = L0*(np.random.rand(N_particles)-0.5)+X0
-        Y = L0*(np.random.rand(N_particles)-0.5)
+        # X = L0*(np.random.rand(N_particles)-0.5)+X0
+        # Y = L0*(np.random.rand(N_particles)-0.5)
+        # Z = np.zeros_like(X)
+        X = np.array([2.3])
+        Y = np.array([25])
         Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
+        print(position)
         frame = gsd.hoomd.Frame()
         frame.particles.N = N_particles
         frame.particles.position = position[0:N_particles]
+        print(np.shape(frame.particles.position))
         frame.particles.typeid = [0] * N_particles
         frame.configuration.box = [L, L, 0, 0, 0, 0]
         frame.particles.types = ['A']
-        frame.particles.orientation = rand_unit_quaternion(N_particles)
+        theta = 0
+        frame.particles.orientation = [np.cos(theta/2), 0, 0, np.sin(theta/2)]
         print("created {N:d} particles".format(N=len(frame.particles.position)))
+        # simulation.timestep = 1459800
         simulation.create_state_from_snapshot(frame)
     else:
         simulation.create_state_from_gsd(
@@ -169,7 +176,8 @@ else:
     flag_continue = True
     print("continue run from ", gsd_filename)
     simulation.create_state_from_gsd(
-        filename=gsd_filename
+        filename=gsd_filename,
+        frame=14598
     )
 
 integrator = hoomd.md.Integrator(dt=dt)
