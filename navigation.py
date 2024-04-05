@@ -60,7 +60,8 @@ def rand_unit_quaternion(N, threeD=False):
 
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
-DR = 1/30
+# DR = 1/30
+DR = 0
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
