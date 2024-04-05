@@ -5,7 +5,7 @@ import numpy as np
 
 Np = int(100)
 runtime = 1800
-Q0 = 0.5
+# Q0 = 1.0
 # sensory suppose to be faster than memory decay time
 kHT20 = 1.0
 # now use the same accumulation rate for H & T
@@ -34,9 +34,9 @@ with open(fname, 'w') as f:
                                     # for iftaxis in ["false","true"]:
                                     for iftaxis in ["true"]:
                                         for depth in ["8.5", "8.9"]:
-                                            params = "{Np:d},{runtime:d},{Q0:.2f},{kHT2:.2f},{kortho:.1f},{iftaxis},{ifkk},{ifok},{if_large},{depth}".format(
+                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{kortho:.1f},{iftaxis},{ifkk},{ifok},{if_large},{depth}".format(
                                                 Np=Np,runtime=runtime,
-                                                Q0=Q0,kHT2=kHT2, kortho=kortho,
+                                                noise_Q=noise_Q,kHT2=kHT2, kortho=kortho,
                                                 iftaxis=iftaxis,ifkk=ifkk,ifok=ifok,
                                                 if_large=if_large,
                                                 depth=depth)
