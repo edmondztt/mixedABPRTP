@@ -67,7 +67,7 @@ runtime = float(sys.argv[2])
 # Q0 = float(sys.argv[3])
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
-kortho = float(sys.argv[5])
+kklino = float(sys.argv[5])
 if_taxis = (sys.argv[6]=="true")
 if_klinokinesis = (sys.argv[7]=="true")
 if_orthokinesis = (sys.argv[8]=="true")
@@ -102,7 +102,7 @@ L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
 kS1 = 1/300 # now we do not use S really. temporarily kept here for interface legacy
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
-print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", kortho=", kortho,", runtime=",runtime)
+print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", kklino=", kklino,", runtime=",runtime)
 
 if if_large:
     rmax = 40 # 40 mm radius for large dist
@@ -135,7 +135,7 @@ else:
     path += "notaxis_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_kortho{5:.1f}_depth{6}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, kortho,depth)
+gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_kklino{5:.1f}_depth{6}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, kklino,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -191,7 +191,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=kT1, kT2=kHT2, kH1=kH1, kH2=kHT2,
-        kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, kortho=kortho, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
+        kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, kklino=kklino, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
         c0_PHD=c0, dc0=dc0, sigma_QH=sigma_QH, sigma_QT=sigma_QT)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1

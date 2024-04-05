@@ -315,7 +315,7 @@ struct __attribute__((aligned(16))) mixedactive_params {
     Scalar kS2;
     Scalar Q0; // lower threshold for gamma
     Scalar Q1; // threshold for taxis
-    Scalar kortho;
+    Scalar kklino;
     Scalar noise_Q;
     Scalar U0;
     Scalar U1;
@@ -327,12 +327,12 @@ struct __attribute__((aligned(16))) mixedactive_params {
 
 #ifndef __HIPCC__
     mixedactive_params() : kT1(1.0/600),kT2(1.0),kH1(0.1),kH2(1.0),kS1(1.0/30),
-    kS2(0.1),Q0(0.3),Q1(10.0),kortho(1.0),noise_Q(0.02),U0(0.2),U1(0.1),gamma0(0.1),c0_PHD(1e-6), dc0(1e-8), sigma_QH(6.0), sigma_QT(2.0) { }
+    kS2(0.1),Q0(0.3),Q1(10.0),kklino(1.0),noise_Q(0.02),U0(0.2),U1(0.1),gamma0(0.1),c0_PHD(1e-6), dc0(1e-8), sigma_QH(6.0), sigma_QT(2.0) { }
     mixedactive_params(pybind11::dict params)
         : kT1(params["kT1"].cast<Scalar>()), kT2(params["kT2"].cast<Scalar>()),
         kH1(params["kH1"].cast<Scalar>()), kH2(params["kH2"].cast<Scalar>()),
         kS1(params["kS1"].cast<Scalar>()), kS2(params["kS2"].cast<Scalar>()),
-        Q0(params["Q0"].cast<Scalar>()), Q1(params["Q1"].cast<Scalar>()), kortho(params["kortho"].cast<Scalar>()),
+        Q0(params["Q0"].cast<Scalar>()), Q1(params["Q1"].cast<Scalar>()), kklino(params["kklino"].cast<Scalar>()),
         noise_Q(params["noise_Q"].cast<Scalar>()), 
         U0(params["U0"].cast<Scalar>()), U1(params["U1"].cast<Scalar>()),
         gamma0(params["gamma0"].cast<Scalar>()), c0_PHD(params["c0_PHD"].cast<Scalar>()), dc0(params["dc0"].cast<Scalar>()),
@@ -351,7 +351,7 @@ struct __attribute__((aligned(16))) mixedactive_params {
         v["kS2"] = kS2;
         v["Q0"] = Q0; 
         v["Q1"] = Q1;
-        v["kortho"] = kortho;
+        v["kklino"] = kklino;
         v["noie_Q"] = noise_Q;
         v["U0"] = U0;
         v["U1"] = U1;
@@ -405,7 +405,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar m_kS2,
     Scalar m_Q0, // tumble rate change around this threshold
     Scalar m_Q1, // threshold for taxis 
-    Scalar m_kortho,
+    Scalar m_kklino,
     Scalar m_noise_Q,
     Scalar m_U0,
     Scalar m_U1,
@@ -483,7 +483,7 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     Scalar* m_kS2;
     Scalar* m_Q0; // lower threshold for gamma
     Scalar* m_Q1; // upper threshold for U
-    Scalar* m_kortho; // strength of ortho kinesis
+    Scalar* m_kklino; // strength of ortho kinesis
     Scalar* m_noise_Q;
     Scalar* m_U0;
     Scalar* m_U1;

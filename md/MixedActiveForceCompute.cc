@@ -114,7 +114,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     m_kS2 = new Scalar[m_pdata->getNTypes()];
     m_Q0 = new Scalar[m_pdata->getNTypes()]; // lower threshold for gamma
     m_Q1 = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
-    m_kortho = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
+    m_kklino = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
     m_noise_Q = new Scalar[m_pdata->getNTypes()];
     m_U0 = new Scalar[m_pdata->getNTypes()];
     m_U1 = new Scalar[m_pdata->getNTypes()];
@@ -158,7 +158,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     delete[] m_kS2;
     delete[] m_Q0; // lower threshold for gamma
     delete[] m_Q1; // upper threshold for U
-    delete[] m_kortho;
+    delete[] m_kklino;
     delete[] m_noise_Q;
     delete[] m_U0;
     delete[] m_U1;
@@ -176,7 +176,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     m_kS2 = NULL;
     m_Q0 = NULL; // lower threshold for gamma
     m_Q1 = NULL; // threshold for taxis
-    m_kortho = NULL;
+    m_kklino = NULL;
     m_noise_Q = NULL;
     m_U0 = NULL;
     m_U1 = NULL;
@@ -312,7 +312,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     Scalar kS2,
     Scalar Q0, 
     Scalar Q1, 
-    Scalar kortho,
+    Scalar kklino,
     Scalar noise_Q,
     Scalar U0,
     Scalar U1,
@@ -333,7 +333,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_kS2[type] = kS2;
     m_Q0[type] =  Q0;
     m_Q1[type] =  Q1;
-    m_kortho[type] = kortho;
+    m_kklino[type] = kklino;
     m_noise_Q[type] = noise_Q;
     m_U0[type] = U0;
     m_U1[type] = U1;
@@ -342,7 +342,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_dc0[type] = dc0;
     m_sigma_QH[type] = sigma_QH;
     m_sigma_QT[type] = sigma_QT;
-    printf("set params: m_kT1=%g,m_kT2=%g,m_kH1=%g,m_kH2=%g,m_Q0=%g,m_kortho=%g,m_noise_Q=%g,m_U0=%g,m_U1=%g, m_gamma0=%g, m_c0=%g,m_dc0=%g,m_sigma_QT=%g\n", kT1, kT2, kH1, kH2, Q0, kortho, noise_Q, U0, U1, gamma0, c0_PHD, dc0, sigma_QT);
+    printf("set params: m_kT1=%g,m_kT2=%g,m_kH1=%g,m_kH2=%g,m_Q0=%g,m_kklino=%g,m_noise_Q=%g,m_U0=%g,m_U1=%g, m_gamma0=%g, m_c0=%g,m_dc0=%g,m_sigma_QT=%g\n", kT1, kT2, kH1, kH2, Q0, kklino, noise_Q, U0, U1, gamma0, c0_PHD, dc0, sigma_QT);
 }
 
 void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict params){
@@ -356,7 +356,7 @@ void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict p
     _params.kS2,
     _params.Q0, 
     _params.Q1, 
-    _params.kortho,
+    _params.kklino,
     _params.noise_Q,
     _params.U0,
     _params.U1,
@@ -383,7 +383,7 @@ pybind11::dict MixedActiveForceCompute::getParams(std::string type){
     params["kS2"] = m_kS2[typ];
     params["Q0"] = m_Q0[typ];
     params["Q1"] = m_Q1[typ];
-    params["kortho"] = m_kortho[typ];
+    params["kklino"] = m_kklino[typ];
     params["noise_Q"] = m_noise_Q[typ];
     params["U0"] = m_U0[typ];
     params["U1"] = m_U1[typ];
@@ -693,7 +693,7 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
     // gamma = gamma0 * (1 - tanh(Q-Q0)); 
-    gamma = gamma0 * exp(-(Q-Q0)*m_kortho[typ]);
+    gamma = gamma0 * exp(-(Q-Q0)*m_kklino[typ]);
     // so that when Q=0 gamma=gamma0
 }
 
