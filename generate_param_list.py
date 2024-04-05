@@ -22,7 +22,7 @@ with open(fname, 'w') as f:
     for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
         for Q0 in [0.5, 1.0]:
-            for k2factor in np.array([0.5, 1.0, 2.0, 5.0]):
+            for k2factor in np.array([0.5, 1.0, 2.0]):
                     kHT2 = kHT20 * k2factor
                     for if_large in ["false", "true"]:
                     # for if_large in ["false"]:

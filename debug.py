@@ -63,7 +63,7 @@ sigma_tumble = 0.2*np.pi
 DR = 1/30
 N_particles = 1
 N_particles = int(N_particles)
-runtime = 1800
+runtime = 100
 Q0 = 1.00
 kHT2 = 1.00
 if_taxis = True
@@ -163,7 +163,7 @@ if(not os.path.exists(gsd_filename)):
         frame.particles.typeid = [0] * N_particles
         frame.configuration.box = [L, L, 0, 0, 0, 0]
         frame.particles.types = ['A']
-        theta = 0
+        theta = np.pi/3
         frame.particles.orientation = [np.cos(theta/2), 0, 0, np.sin(theta/2)]
         print("created {N:d} particles".format(N=len(frame.particles.position)))
         # simulation.timestep = 1459800
