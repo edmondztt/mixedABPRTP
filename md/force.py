@@ -641,7 +641,7 @@ class MixedActive(Force):
         
         params = TypeParameter('params', 'particle_types',
                 TypeParameterDict(kH1=float, kH2=float, kT1=float, kT2=float, 
-                                kS1=float, kS2=float, Q0=float, Q1=float, kortho=float,
+                                kS1=float, kS2=float, Q0=float, Q1=float, kklino=float,
                                 U0=float, U1=float, gamma0=float, c0_PHD=float, dc0=float,
                                 sigma_QH=float, sigma_QT=float, noise_Q=float,
                                 len_keys=1))

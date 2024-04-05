@@ -63,9 +63,10 @@ sigma_tumble = 0.2*np.pi
 DR = 1/30
 N_particles = 1
 N_particles = int(N_particles)
-runtime = 100
+runtime = 1800
 Q0 = 1.00
 kHT2 = 1.00
+kklino = 1.5
 if_taxis = True
 if_klinokinesis = True
 if_orthokinesis = True
@@ -79,7 +80,8 @@ print("depth=", depth)
 
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
-noise_Q = 0.2*Q0
+noise_Q = 0.01*Q0
+
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
 kT1 = 1.0/10.0
@@ -132,7 +134,7 @@ else:
     path += "notaxis_"
 
 
-gsd_filename = "testN{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_iftaxis{5}_ifkk{6}_ifok{7}_depth{8}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, if_taxis, if_klinokinesis, if_orthokinesis,depth)
+gsd_filename = "testN{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_kklino{5:.1f}_depth{6}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, kklino, depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -196,7 +198,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
 mixed_active.params['A'] = dict(kT1=kT1, kT2=kHT2, kH1=kH1, kH2=kHT2,
-        kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
+        kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, kklino=kklino, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
         c0_PHD=c0, dc0=dc0, sigma_QH=sigma_QH, sigma_QT=sigma_QT)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
 # mixed_active.kT2['A'] = 1
