@@ -603,7 +603,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 theta0 = atan2(sinq,cosq)/2.0;
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/5; // linear mixture of taxis angle and the tumble angle.
                 theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
