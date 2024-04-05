@@ -114,6 +114,7 @@ MixedActiveForceCompute::MixedActiveForceCompute(std::shared_ptr<SystemDefinitio
     m_kS2 = new Scalar[m_pdata->getNTypes()];
     m_Q0 = new Scalar[m_pdata->getNTypes()]; // lower threshold for gamma
     m_Q1 = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
+    m_kortho = new Scalar[m_pdata->getNTypes()]; // upper threshold for U
     m_noise_Q = new Scalar[m_pdata->getNTypes()];
     m_U0 = new Scalar[m_pdata->getNTypes()];
     m_U1 = new Scalar[m_pdata->getNTypes()];
@@ -157,6 +158,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     delete[] m_kS2;
     delete[] m_Q0; // lower threshold for gamma
     delete[] m_Q1; // upper threshold for U
+    delete[] m_kortho;
     delete[] m_noise_Q;
     delete[] m_U0;
     delete[] m_U1;
@@ -174,6 +176,7 @@ MixedActiveForceCompute::~MixedActiveForceCompute()
     m_kS2 = NULL;
     m_Q0 = NULL; // lower threshold for gamma
     m_Q1 = NULL; // threshold for taxis
+    m_kortho = NULL;
     m_noise_Q = NULL;
     m_U0 = NULL;
     m_U1 = NULL;
@@ -309,6 +312,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     Scalar kS2,
     Scalar Q0, 
     Scalar Q1, 
+    Scalar kortho,
     Scalar noise_Q,
     Scalar U0,
     Scalar U1,
@@ -329,6 +333,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_kS2[type] = kS2;
     m_Q0[type] =  Q0;
     m_Q1[type] =  Q1;
+    m_kortho[type] = kortho;
     m_noise_Q[type] = noise_Q;
     m_U0[type] = U0;
     m_U1[type] = U1;
@@ -350,6 +355,7 @@ void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict p
     _params.kS2,
     _params.Q0, 
     _params.Q1, 
+    _params.kortho,
     _params.noise_Q,
     _params.U0,
     _params.U1,
@@ -376,6 +382,7 @@ pybind11::dict MixedActiveForceCompute::getParams(std::string type){
     params["kS2"] = m_kS2[typ];
     params["Q0"] = m_Q0[typ];
     params["Q1"] = m_Q1[typ];
+    params["kortho"] = m_kortho[typ];
     params["noise_Q"] = m_noise_Q[typ];
     params["U0"] = m_U0[typ];
     params["U1"] = m_U1[typ];
@@ -560,13 +567,13 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
 
         if (m_sysdef->getNDimensions() == 2) // 2D
         {
-            c_new = compute_c_new(pos, timestep);
-            c_old = h_QS.data[idx].w;
             update_tumble_rate(gamma, tmpQ, typ);
-            if(c_new<c_old){
-                gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]))/2;
-                h_tumble_rate.data[idx].x = gamma;
-            }
+            // c_new = compute_c_new(pos, timestep);
+            // c_old = h_QS.data[idx].w;
+            // if(c_new<c_old && tumble_angle_gauss_spread>0){
+            //     gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]))/2;
+            //     h_tumble_rate.data[idx].x = gamma;
+            // }
             // now decide whether to tumble at this timestep
             if(!should_tumble(gamma, time_elapse, rng)){
                 continue;
@@ -684,9 +691,9 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     Scalar Q0, gamma0;
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
-    gamma = gamma0 * (1 - tanh(Q-Q0)); 
+    // gamma = gamma0 * (1 - tanh(Q-Q0)); 
+    gamma = gamma0 * exp(-(Q-Q0)*m_kortho[typ]);
     // so that when Q=0 gamma=gamma0
-    // since QT saturate quickly to Q0, ignore the part where Q<Q0
 }
 
 Scalar MixedActiveForceCompute::compute_c_new(Scalar4 pos, uint64_t timestep){
@@ -750,7 +757,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
         QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
         
-        update_S(S, QH + QT, typ);
+        // update_S(S, QH + QT, typ);
         
         if(m_orthokinesis){
             update_U(U, QH-QT, typ);
