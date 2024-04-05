@@ -342,6 +342,7 @@ void MixedActiveForceCompute::setParams(unsigned int type, Scalar kT1,
     m_dc0[type] = dc0;
     m_sigma_QH[type] = sigma_QH;
     m_sigma_QT[type] = sigma_QT;
+    printf("set params: m_kT1=%g,m_kT2=%g,m_kH1=%g,m_kH2=%g,m_Q0=%g,m_kortho=%g,m_noise_Q=%g,m_U0=%g,m_U1=%g, m_gamma0=%g, m_c0=%g,m_dc0=%g,m_sigma_QT=%g\n", kT1, kT2, kH1, kH2, Q0, kortho, noise_Q, U0, U1, gamma0, c0_PHD, dc0, sigma_QT);
 }
 
 void MixedActiveForceCompute::setParamsPython(std::string type, pybind11::dict params){
