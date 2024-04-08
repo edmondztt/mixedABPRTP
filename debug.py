@@ -60,13 +60,14 @@ def rand_unit_quaternion(N, threeD=False):
 
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
-DR = 1/30
-N_particles = 1
+DR = 0
+N_particles = 10
 N_particles = int(N_particles)
 runtime = 1800
 Q0 = 1.00
+noise_Q = 0.01*Q0
 kHT2 = 1.00
-kklino = 1.5
+kklino = 2
 if_taxis = True
 if_klinokinesis = True
 if_orthokinesis = True
@@ -80,7 +81,6 @@ print("depth=", depth)
 
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
-noise_Q = 0.01*Q0
 
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
@@ -150,12 +150,12 @@ if(not os.path.exists(gsd_filename)):
         print(fname_init, " does not exist. creating new config.")
         L = 2*rmax+1.0
         print('L=',L)
-        # X = L0*(np.random.rand(N_particles)-0.5)+X0
-        # Y = L0*(np.random.rand(N_particles)-0.5)
-        # Z = np.zeros_like(X)
-        X = np.array([2.3])
-        Y = np.array([25])
+        X = L0*(np.random.rand(N_particles)-0.5)+X0
+        Y = L0*(np.random.rand(N_particles)-0.5)
         Z = np.zeros_like(X)
+        # X = np.array([2.3])
+        # Y = np.array([25])
+        # Z = np.zeros_like(X)
         position = np.stack((X,Y,Z),axis=-1)
         print(position)
         frame = gsd.hoomd.Frame()
@@ -166,7 +166,8 @@ if(not os.path.exists(gsd_filename)):
         frame.configuration.box = [L, L, 0, 0, 0, 0]
         frame.particles.types = ['A']
         theta = np.pi/3
-        frame.particles.orientation = [np.cos(theta/2), 0, 0, np.sin(theta/2)]
+        frame.particles.orientation = rand_unit_quaternion(N_particles)
+        # frame.particles.orientation = [np.cos(theta/2), 0, 0, np.sin(theta/2)]
         print("created {N:d} particles".format(N=len(frame.particles.position)))
         # simulation.timestep = 1459800
         simulation.create_state_from_snapshot(frame)

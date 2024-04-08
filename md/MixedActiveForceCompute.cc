@@ -591,16 +591,15 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 theta_tumble = (theta_tumble>M_PI) ? (M_PI - theta_tumble) : theta_tumble;
             }
             // now theta_tumble is [-pi , pi]
-            Scalar theta_turn;
+            Scalar theta_turn, cosq, sinq, theta0;
+            cosq = h_orientation.data[idx].x;
+            sinq = h_orientation.data[idx].w;
+            theta0 = atan2(sinq,cosq)*2.0;
             if(iftaxis){
                 Scalar3 cgrad = compute_c_grad(pos, timestep);
                 Scalar gradx, grady; 
                 gradx = cgrad.x; grady = cgrad.y;
                 Scalar theta_taxis = atan2(grady, gradx);
-                Scalar cosq, sinq, theta0;
-                cosq = h_orientation.data[idx].x;
-                sinq = h_orientation.data[idx].w;
-                theta0 = atan2(sinq,cosq)*2.0;
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear mixture of taxis angle and the tumble angle.
@@ -609,7 +608,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             else{
                 theta_turn = theta_tumble;
             }
-            quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_turn);
+            quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_turn+theta0);
             quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
             h_orientation.data[idx] = quat_to_scalar4(quati);
             // In 2D, the only meaningful torque vector is out of plane and should not change
