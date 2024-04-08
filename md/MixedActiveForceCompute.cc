@@ -600,10 +600,10 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 Scalar cosq, sinq, theta0;
                 cosq = h_orientation.data[idx].x;
                 sinq = h_orientation.data[idx].w;
-                theta0 = atan2(sinq,cosq)/2.0;
+                theta0 = atan2(sinq,cosq)*2.0;
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/5; // linear mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear mixture of taxis angle and the tumble angle.
                 theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
@@ -756,7 +756,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
         h_tumble_rate.data[idx].w = cterm;
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
-        // QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
+        QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
         
         // update_S(S, QH + QT, typ);
         
