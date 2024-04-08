@@ -628,7 +628,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
     }
 }
 
-Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ){
+Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar k1, k2, c_term;
 
     switch (FLAG_Q) {
@@ -685,11 +685,10 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
     // if QH=1+Q0, QT=1, U=U0+U1.
 }
 
-void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, unsigned int ptag){
+void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar U0, U1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,ptag,m_sysdef->getSeed()), hoomd::Counter(ptag));
     U = hoomd::NormalDistribution<Scalar>(U0/3, U0)(rng);
     U = (U>0.0) ? U : 0.0;
 }
@@ -743,7 +742,8 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         idx = m_group->getMemberIndex(i);
         typ = __scalar_as_int(h_pos.data[idx].w);
         ptag = h_tag.data[idx];
-
+        hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
+            timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         S = h_QS.data[idx].z;
         if(S>=1){
             continue;
@@ -757,9 +757,9 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // printf("now at timestep %d, part %d : c_old=%g. before compute new c\n", timestep, idx, c_old);
         c_new = compute_c_new(pos, timestep);
         // now evolve the dynamics
-        cterm = update_Q(QH, c_old, c_new, m_FLAG_QH, typ);
+        cterm = update_Q(QH, c_old, c_new, m_FLAG_QH, typ, rng);
         h_tumble_rate.data[idx].z = cterm;
-        cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ);
+        cterm = update_Q(QT, c_old, c_new, m_FLAG_QT, typ, rng);
         h_tumble_rate.data[idx].w = cterm;
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
         QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
@@ -770,7 +770,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
             update_U(U, QH-QT, typ);
         }
         else{
-            update_U_random(U, typ, ptag);
+            update_U_random(U, typ, rng);
         }
         
         if(m_klinokinesis){

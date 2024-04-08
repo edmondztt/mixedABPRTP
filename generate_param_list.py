@@ -21,7 +21,7 @@ with open(fname, 'w') as f:
     # for Np in [100, 10000]:
     for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
-        for noise_Q in [0.01, 0.1]:
+        for noise_Q in [0.01, 0.1, 0.2]:
         # for noise_Q in [0.01]:
             for k2factor in np.array([2.0]):
                     kHT2 = kHT20 * k2factor

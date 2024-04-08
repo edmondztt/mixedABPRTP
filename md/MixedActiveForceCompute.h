@@ -447,10 +447,10 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters(uint64_t timestep);
 
-    Scalar update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ);
+    Scalar update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ, hoomd::RandomGenerator rng);
     void update_S(Scalar &S, Scalar Q, unsigned int typ);
     void update_U(Scalar &U, Scalar Q, unsigned int typ);
-    void update_U_random(Scalar &U, unsigned int typ, unsigned int ptag);
+    void update_U_random(Scalar &U, unsigned int typ, hoomd::RandomGenerator rng);
     void update_tumble_rate(Scalar &gamma, Scalar Q, unsigned int typ);
     Scalar compute_c_new(Scalar4 pos, uint64_t timestep);
     Scalar3 compute_c_grad(Scalar4 pos, uint64_t timestep);
