@@ -528,7 +528,7 @@ void MixedActiveForceCompute::rotationalDiffusion(Scalar rotational_diffusion, u
 
 bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng){
     // model tumbling as a Poisson process
-    Scalar timeForNextEvent = hoomd::GammaDistribution<Scalar>(1, tumble_rate)(rng);
+    Scalar timeForNextEvent = hoomd::GammaDistribution<Scalar>(1, 1/tumble_rate)(rng);
     return timeForNextEvent <= time_elapse;
 }
 
