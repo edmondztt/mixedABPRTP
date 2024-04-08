@@ -25,7 +25,7 @@ with open(fname, 'w') as f:
         # for noise_Q in [0.01]:
             for k2factor in np.array([2.0]):
                     kHT2 = kHT20 * k2factor
-                    for kklino in [2.0]:
+                    for kklino in [1.0, 1.5]:
                         # for if_large in ["false", "true"]:
                         for if_large in ["false"]:
                             # for ifok in ["false","true"]:
