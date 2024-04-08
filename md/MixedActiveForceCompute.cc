@@ -563,7 +563,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         
-        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D
@@ -602,8 +602,15 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 Scalar theta_taxis = atan2(grady, gradx);
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear mixture of taxis angle and the tumble angle.
-                theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
+                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
+                if(frac_taxis>rv){
+                    theta_turn = theta_taxis;
+                }
+                else{
+                    theta_turn = theta_tumble;
+                }
+                // theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
                 theta_turn = theta_tumble;
@@ -635,7 +642,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         }
         // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
         c_term = (c_term>m_dc0[typ]) ? 1.0 : (log10(c_term/m_dc0[typ])+3)/3;
-        c_term = std::max(0.0, c_term);
+        c_term = std::max(0.0, c_term) + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         break;
     }
     case m_FLAG_QT: {

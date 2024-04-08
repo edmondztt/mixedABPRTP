@@ -49,4 +49,4 @@ echo "n max = $n_max"
 
 scp -r data/* tingtao@131.215.127.174:~/myhdd1/pheromone-modeling/data
 
-mv parameters.csv "parameters.finished.$((n_max + 1)).csv"
+#mv parameters.csv "parameters.finished.$((n_max + 1)).csv"
