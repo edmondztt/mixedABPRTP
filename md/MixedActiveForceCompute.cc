@@ -602,7 +602,8 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 Scalar theta_taxis = atan2(grady, gradx);
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
+                frac_taxis = (tmpQ>2*m_Q0[typ]) ? frac_taxis : 0;
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                 if(frac_taxis>rv){
                     theta_turn = theta_taxis;
