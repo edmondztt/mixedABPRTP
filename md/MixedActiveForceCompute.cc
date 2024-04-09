@@ -596,9 +596,10 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
             if(iftaxis){
-                if(tmpQ>m_Q0[typ]){
+                Scalar tmpQ_eff = tmpQ-m_Q0[typ];
+                if(tmpQ_eff>0){
                     // so that the angle to rotate falls in [-2pi, 2pi] 
-                    Scalar frac_taxis = (tanh(tmpQ-m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
+                    Scalar frac_taxis = (tanh(tmpQ_eff)+1)/2; // linear prob mixture of taxis angle and the tumble angle.
                     // frac_taxis = (tmpQ>2*m_Q0[typ]) ? frac_taxis : 0;
                     Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                     if(frac_taxis>rv){
