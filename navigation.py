@@ -61,14 +61,14 @@ def rand_unit_quaternion(N, threeD=False):
 dt = 1e-3
 sigma_tumble = 0.2*np.pi
 # DR = 1/30
-DR = 0
+
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
 runtime = float(sys.argv[2])
 # Q0 = float(sys.argv[3])
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
-kklino = float(sys.argv[5])
+DR = float(sys.argv[5])
 if_taxis = (sys.argv[6]=="true")
 if_klinokinesis = (sys.argv[7]=="true")
 if_orthokinesis = (sys.argv[8]=="true")
@@ -80,6 +80,7 @@ print("if_orthokinesis=", if_orthokinesis)
 print("if_large=", if_large)
 print("depth=", depth)
 
+kklino=1.0
 Q0 = 1.0
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
@@ -93,8 +94,8 @@ U1 = 0.03
 # sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
 sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
-c0 = 1e-6/2
-dc0 = 1e-6 / 1 / 2 # take this as the typical c change rate
+c0 = 1e-6
+dc0 = 1e-6 / 1 # take this as the typical c change rate
 # timescale_across_plate = 30 / U0
 # dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
 
@@ -103,7 +104,7 @@ L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
 kS1 = 1/300 # now we do not use S really. temporarily kept here for interface legacy
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
-print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", kklino=", kklino,", runtime=",runtime)
+print("N=",N_particles, ", DR=",DR, ", kH2=kT2=",kHT2,", kklino=", kklino,", runtime=",runtime)
 
 if if_large:
     rmax = 40 # 40 mm radius for large dist
@@ -136,7 +137,7 @@ else:
     path += "notaxis_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_kklino{5:.1f}_depth{6}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, kklino,depth)
+gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.1f}_depth{5}mm.gsd".format(N_particles, runtime, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
