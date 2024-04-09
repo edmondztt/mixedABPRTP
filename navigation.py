@@ -86,15 +86,15 @@ gamma0 = 1 / gamma0_inv
 noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
-kT1 = 1.0/10.0
+kT1 = 1.0/200.0 # go back to long-memory of PHD
 kH1 = 1.0/10.0
 U0 = 0.064
 U1 = 0.03
 # sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
 sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
-c0 = 1e-6
-dc0 = 1e-6 / 1 # take this as the typical c change rate
+c0 = 1e-6/2
+dc0 = 1e-6 / 1 / 2 # take this as the typical c change rate
 # timescale_across_plate = 30 / U0
 # dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
 

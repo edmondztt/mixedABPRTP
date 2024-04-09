@@ -563,7 +563,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         
-        tmpQ = h_QS.data[idx].x + h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        tmpQ = h_QS.data[idx].x - h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D
@@ -602,7 +602,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 Scalar theta_taxis = atan2(grady, gradx);
                 theta_taxis -= theta0;
                 // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = (tanh(tmpQ-m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                 if(frac_taxis>rv){
                     theta_turn = theta_taxis;
@@ -637,7 +637,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         k2 = m_kH2[typ];
         c_term = (c_new - c_old)/m_deltaT;
         if(c_term<=0){
-            c_term = 0.0;
+            c_term = hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
             break;
         }
         // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
@@ -698,7 +698,7 @@ void MixedActiveForceCompute::update_tumble_rate(Scalar &gamma, Scalar Q, unsign
     gamma0 = m_gamma0[typ];
     Q0 = m_Q0[typ];
     // gamma = gamma0 * (1 - tanh(Q-Q0)); 
-    gamma = gamma0 * exp(-(Q-Q0)*m_kklino[typ]);
+    gamma = gamma0 * exp(-(Q)*m_kklino[typ]);
     // so that when Q=0 gamma=gamma0
 }
 
