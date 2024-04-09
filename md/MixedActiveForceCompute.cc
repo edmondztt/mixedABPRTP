@@ -562,7 +562,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
 
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
-        
+        // now tmpQ = QH - QT
         tmpQ = h_QS.data[idx].x - h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
 
@@ -596,17 +596,22 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
             if(iftaxis){
-                Scalar3 cgrad = compute_c_grad(pos, timestep);
-                Scalar gradx, grady; 
-                gradx = cgrad.x; grady = cgrad.y;
-                Scalar theta_taxis = atan2(grady, gradx);
-                theta_taxis -= theta0;
-                // so that the angle to rotate falls in [-2pi, 2pi] 
-                Scalar frac_taxis = (tanh(tmpQ-2*m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
-                frac_taxis = (tmpQ>2*m_Q0[typ]) ? frac_taxis : 0;
-                Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
-                if(frac_taxis>rv){
-                    theta_turn = theta_taxis;
+                if(tmpQ>m_Q0[typ]){
+                    // so that the angle to rotate falls in [-2pi, 2pi] 
+                    Scalar frac_taxis = (tanh(tmpQ-m_Q0[typ])+1)/2; // linear prob mixture of taxis angle and the tumble angle.
+                    // frac_taxis = (tmpQ>2*m_Q0[typ]) ? frac_taxis : 0;
+                    Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
+                    if(frac_taxis>rv){
+                        Scalar3 cgrad = compute_c_grad(pos, timestep);
+                        Scalar gradx, grady; 
+                        gradx = cgrad.x; grady = cgrad.y;
+                        Scalar theta_taxis = atan2(grady, gradx);
+                        theta_taxis -= theta0;
+                        theta_turn = theta_taxis;
+                    }
+                    else{
+                        theta_turn = theta_tumble;
+                    }
                 }
                 else{
                     theta_turn = theta_tumble;
