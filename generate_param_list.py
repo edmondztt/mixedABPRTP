@@ -33,8 +33,8 @@ with open(fname, 'w') as f:
                             for ifok in ["true"]:
                                 for ifkk in ["false","true"]:
                                 # for ifkk in ["true"]:
-                                    # for iftaxis in ["false","true"]:
-                                    for iftaxis in ["true"]:
+                                    for iftaxis in ["false"]:
+                                    # for iftaxis in ["true"]:
                                         # for depth in ["8.5"]:
                                         for depth in ["8.5", "8.9"]:
                                             params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{iftaxis},{ifkk},{ifok},{if_large},{depth}".format(
