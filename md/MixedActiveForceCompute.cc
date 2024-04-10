@@ -562,66 +562,49 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
 
         hoomd::RandomGenerator rng(hoomd::Seed(hoomd::RNGIdentifier::MixedActiveForceCompute,
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
-        // now tmpQ = QH - QT
-        tmpQ = h_QS.data[idx].x - h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        // now tmpQ = QH / QT
+        tmpQ = h_QS.data[idx].x / h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D
         {
-            gamma = h_tumble_rate.data[idx].x;
-            // c_new = compute_c_new(pos, timestep);
-            // c_old = h_QS.data[idx].w;
-            // if(c_new<c_old && tumble_angle_gauss_spread>0){
-            //     gamma += gamma * (1+tanh(tmpQ - m_Q0[typ]))/2;
-            //     h_tumble_rate.data[idx].x = gamma;
-            // }
-            // now decide whether to tumble at this timestep
-            if(!should_tumble(gamma, time_elapse, rng)){
-                continue;
-            }
-            vec3<Scalar> rot_axis(0.0, 0.0, 1.0);
-            
-            Scalar theta_tumble;
-            if (tumble_angle_gauss_spread<0)
-            {
-                theta_tumble = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
-            }
-            else{
-                theta_tumble = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
-                theta_tumble = (theta_tumble>M_PI) ? (M_PI - theta_tumble) : theta_tumble;
-            }
-            // now theta_tumble is [-pi , pi]
             Scalar theta_turn, cosq, sinq, theta0;
             cosq = h_orientation.data[idx].x;
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
-            if(iftaxis){
-                Scalar tmpQ_eff = tmpQ-m_Q0[typ];
-                if(tmpQ_eff>0){
-                    // so that the angle to rotate falls in [-2pi, 2pi] 
-                    Scalar frac_taxis = (tanh(tmpQ_eff)+1)/2; // linear prob mixture of taxis angle and the tumble angle.
-                    // frac_taxis = (tmpQ>2*m_Q0[typ]) ? frac_taxis : 0;
-                    Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
-                    if(frac_taxis>rv){
-                        Scalar3 cgrad = compute_c_grad(pos, timestep);
-                        Scalar gradx, grady; 
-                        gradx = cgrad.x; grady = cgrad.y;
-                        Scalar theta_taxis = atan2(grady, gradx);
-                        theta_taxis -= theta0;
-                        theta_turn = theta_taxis;
-                    }
-                    else{
-                        theta_turn = theta_tumble;
-                    }
+            // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
+            if(iftaxis && h_tumble_rate.data[idx].z<0){
+                // so that the angle to rotate falls in [-2pi, 2pi] 
+                Scalar frac_taxis = (tanh(tmpQ-10*m_Q0[typ])+1)/4; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
+                if(frac_taxis>rv){
+                    Scalar3 cgrad = compute_c_grad(pos, timestep);
+                    Scalar gradx, grady; 
+                    gradx = cgrad.x; grady = cgrad.y;
+                    theta_turn = atan2(grady, gradx);
+                    theta_turn -= theta0;
                 }
                 else{
-                    theta_turn = theta_tumble;
+                    continue;
                 }
-                // theta_turn = theta_taxis * std::min(frac_taxis,1.0) + theta_tumble * std::max(1.0-frac_taxis, 0.0);
             }
             else{
-                theta_turn = theta_tumble;
+                // now decide whether to tumble at this timestep
+                gamma = h_tumble_rate.data[idx].x;
+                if(!should_tumble(gamma, time_elapse, rng)){
+                    continue;
+                }
+                if (tumble_angle_gauss_spread<0)
+                {
+                    theta_turn = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
+                }
+                else{
+                    theta_turn = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
+                    theta_turn = (theta_turn>M_PI) ? (M_PI - theta_turn) : theta_turn;
+                }
+                // now theta_tumble is [-pi , pi]
             }
+            vec3<Scalar> rot_axis(0.0, 0.0, 1.0);
             quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_turn+theta0);
             quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
             h_orientation.data[idx] = quat_to_scalar4(quati);
