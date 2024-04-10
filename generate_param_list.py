@@ -22,7 +22,7 @@ with open(fname, 'w') as f:
     for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
         # for noise_Q in [0.1, 1.0]:
-        for noise_Q in [0.01]:
+        for noise_Q in [0.1]:
             for k2factor in np.array([0.1, 0.2, 0.4, 0.8]):
                     kHT2 = kHT20 * k2factor
                     # for kklino in [1.0]:
