@@ -110,7 +110,7 @@ L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
 kS1 = 1/300 # now we do not use S really. temporarily kept here for interface legacy
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
-print("N=",N_particles, ", DR=",DR, ", kH2=kT2=",kHT2,", kklino=", kklino,", runtime=",runtime)
+print("N=",N_particles, ", DR=",DR, ", kH2=",kH2,", kT2=", kT2,", kklino=", kklino,", runtime=",runtime)
 
 if if_large:
     rmax = 40 # 40 mm radius for large dist
