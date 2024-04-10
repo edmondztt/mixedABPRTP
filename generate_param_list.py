@@ -13,7 +13,7 @@ gamma0_inv = 15
 iftaxis = "true"
 ifkk = "true"
 ifok = "true"
-
+if_large = "false"
 
 fname = 'parameters.csv'
 with open(fname, 'w') as f:
@@ -28,7 +28,7 @@ with open(fname, 'w') as f:
                     # for kklino in [1.0]:
                     for DR in [1/10]:
                         # for if_large in ["false", "true"]:
-                        for if_large in ["false"]:
+                        for iftail in ["true","false"]:
                             # for ifok in ["false","true"]:
                             for ifok in ["true"]:
                                 for ifkk in ["false","true"]:
@@ -37,11 +37,11 @@ with open(fname, 'w') as f:
                                     for iftaxis in ["true"]:
                                         # for depth in ["8.5"]:
                                         for depth in ["8.5", "8.9"]:
-                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{iftaxis},{ifkk},{ifok},{if_large},{depth}".format(
+                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{iftaxis},{ifkk},{ifok},{if_large},{iftail},{depth}".format(
                                                 Np=Np,runtime=runtime,
                                                 noise_Q=noise_Q,kHT2=kHT2, DR=DR,
                                                 iftaxis=iftaxis,ifkk=ifkk,ifok=ifok,
-                                                if_large=if_large,
+                                                if_large=if_large,iftail=iftail,
                                                 depth=depth)
                                             # print(params)
                                             f.write(params)
