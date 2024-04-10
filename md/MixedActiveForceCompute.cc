@@ -585,26 +585,24 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                     theta_turn = atan2(grady, gradx);
                     theta_turn -= theta0;
                 }
-                else{
-                    continue;
-                }
+            }
+            // have to do tumble regardless of whether taxis!!
+            // otherwise the tumbling rate is biased!!
+            // now decide whether to tumble at this timestep
+            gamma = h_tumble_rate.data[idx].x;
+            if(!should_tumble(gamma, time_elapse, rng)){
+                continue;
+            }
+            if (tumble_angle_gauss_spread<0)
+            {
+                theta_turn = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
             }
             else{
-                // now decide whether to tumble at this timestep
-                gamma = h_tumble_rate.data[idx].x;
-                if(!should_tumble(gamma, time_elapse, rng)){
-                    continue;
-                }
-                if (tumble_angle_gauss_spread<0)
-                {
-                    theta_turn = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
-                }
-                else{
-                    theta_turn = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
-                    theta_turn = (theta_turn>M_PI) ? (M_PI - theta_turn) : theta_turn;
-                }
-                // now theta_tumble is [-pi , pi]
+                theta_turn = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
+                theta_turn = (theta_turn>M_PI) ? (M_PI - theta_turn) : theta_turn;
             }
+            // now theta_tumble is [-pi , pi]
+
             vec3<Scalar> rot_axis(0.0, 0.0, 1.0);
             quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_turn+theta0);
             quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
