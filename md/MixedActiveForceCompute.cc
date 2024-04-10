@@ -549,7 +549,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
     assert(h_tag.data != NULL);
     assert(h_QS.data != NULL);
 
-    Scalar tmpQ, gamma, c_new, c_old;
+    Scalar tmpQ, tmpQ1, gamma, c_new, c_old;
     Scalar time_elapse = m_deltaT * period;
     Scalar4 pos;
     unsigned int idx, typ, ptag;
@@ -564,6 +564,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         // now tmpQ = QH / QT
         tmpQ = h_QS.data[idx].x / h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        tmpQ1 = h_QS.data[idx].x - h_QS.data[idx].y;
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D
@@ -573,7 +574,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
             // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
-            if(iftaxis && tmpQ>7*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
+            if(iftaxis && tmpQ1>0.5*m_Q0[typ] && tmpQ>7*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 Scalar frac_taxis = (tanh(tmpQ-10*m_Q0[typ])+1)/4; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
@@ -643,7 +644,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
             break;
         }
         // from optogenetic exp: when both H&T stimed, goes forward
-        c_term = 0.5 * exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QT[typ],2.0));
+        c_term = 1.0 * exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QT[typ],2.0));
         break;
     }
     default:
