@@ -663,12 +663,15 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
     S -= m_deltaT*(k1 * S + k2*(Q-0.3));
 }
 
-void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ){
+void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar U0, U1, Q0;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     Q0 = m_Q0[typ];
     U = U0 + U1 * tanh(Q) / tanh(Q0); 
+    U = hoomd::NormalDistribution<Scalar>(U/2,U)(rng);
+    U = (U>0.0) ? U : 0.0;
+    // U = U0 + U1
     // QT should saturate to 1 to make it more symmetric around mean U0. 
     // If QH=0, QT=Q0, U=U0-U1.
     // if QH = QT = Q0, U=U0. 
