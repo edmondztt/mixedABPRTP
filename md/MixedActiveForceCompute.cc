@@ -761,7 +761,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         // update_S(S, QH + QT, typ);
         
         if(m_orthokinesis){
-            update_U(U, QH-QT, typ);
+            update_U(U, QH-QT, typ, rng);
         }
         else{
             update_U_random(U, typ, rng);

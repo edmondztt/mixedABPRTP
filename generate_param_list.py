@@ -23,20 +23,20 @@ with open(fname, 'w') as f:
         # for Q0 in [0.5, 1.0, 0.2]:
         # for noise_Q in [0.1, 1.0]:
         for noise_Q in [0.0]:
-            for k2factor in np.array([0.2, 0.4, 0.8, 1.6]):
+            for k2factor in np.array([0.2, 0.8,]):
                     kHT2 = kHT20 * k2factor
                     # for kklino in [1.0]:
                     for DR in [1/10]:
                         # for if_large in ["false", "true"]:
                         for iftail in ["true","false"]:
-                            # for ifok in ["false","true"]:
-                            for ifok in ["true"]:
+                            for ifok in ["false","true"]:
+                            # for ifok in ["true"]:
                                 for ifkk in ["false","true"]:
                                 # for ifkk in ["true"]:
-                                    for iftaxis in ["false"]:
-                                    # for iftaxis in ["true"]:
-                                        # for depth in ["8.5"]:
-                                        for depth in ["8.5", "8.9"]:
+                                    # for iftaxis in ["false"]:
+                                    for iftaxis in ["true", "false"]:
+                                        for depth in ["8.5"]:
+                                        # for depth in ["8.5", "8.9"]:
                                             params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{iftaxis},{ifkk},{ifok},{if_large},{iftail},{depth}".format(
                                                 Np=Np,runtime=runtime,
                                                 noise_Q=noise_Q,kHT2=kHT2, DR=DR,
