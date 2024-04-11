@@ -628,12 +628,13 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         k2 = m_kH2[typ];
         c_term = (c_new - c_old)/m_deltaT;
         if(c_term<=0){
-            c_term = hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+            // c_term = hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+            c_term = 0;
             break;
         }
         // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
         c_term = (c_term>m_dc0[typ]) ? 1.0 : (log10(c_term/m_dc0[typ])+3)/3;
-        c_term = std::max(0.0, c_term) + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+        c_term = std::max(0.0, c_term); // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
         break;
     }
     case m_FLAG_QT: {
@@ -664,13 +665,14 @@ void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
 }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, hoomd::RandomGenerator rng){
-    Scalar U0, U1, Q0;
+    Scalar U0, U1, Q0, Qnoised;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
     Q0 = m_Q0[typ];
-    U = U0 + U1 * tanh(Q) / tanh(Q0); 
-    U = hoomd::NormalDistribution<Scalar>(U/2,U)(rng);
-    U = (U>0.0) ? U : 0.0;
+    Qnoised = Q + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
+    U = U0 + U1 * tanh(Qnoised) / tanh(Q0); 
+    // U = hoomd::NormalDistribution<Scalar>(U/2,U)(rng);
+    // U = (U>0.0) ? U : 0.0;
     // U = U0 + U1
     // QT should saturate to 1 to make it more symmetric around mean U0. 
     // If QH=0, QT=Q0, U=U0-U1.
