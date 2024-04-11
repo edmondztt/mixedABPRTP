@@ -683,7 +683,7 @@ void MixedActiveForceCompute::update_U_random(Scalar &U, unsigned int typ, hoomd
     Scalar U0, U1;
     U0 = m_U0[typ];
     U1 = m_U1[typ];
-    U = hoomd::NormalDistribution<Scalar>(U0/3, U0)(rng);
+    U = hoomd::NormalDistribution<Scalar>(U0/2, U0)(rng);
     U = (U>0.0) ? U : 0.0;
 }
 
