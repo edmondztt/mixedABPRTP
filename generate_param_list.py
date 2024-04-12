@@ -38,11 +38,11 @@ with open(fname, 'w') as f:
                                     for if_head in ["true", "false"]:
                                         # for depth in ["8.5"]:
                                         for depth in ["8.5", "8.9"]:
-                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{if_large},{iftail},{depth}".format(
+                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{plate_condition},{iftail},{depth}".format(
                                                 Np=Np,runtime=runtime,
                                                 noise_Q=noise_Q,kHT2=kHT2, DR=DR,
                                                 if_head=if_head,ifkk=ifkk,ifok=ifok,
-                                                if_large=if_large,iftail=iftail,
+                                                plate_condition=plate_condition,iftail=iftail,
                                                 depth=depth)
                                             # print(params)
                                             f.write(params)

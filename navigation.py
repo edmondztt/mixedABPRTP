@@ -109,7 +109,7 @@ sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
 c0 = 1e-6
 dc0 = 1e-6 / 1 # take this as the typical c change rate
-if plate_condition is "smalldilute":
+if plate_condition == "smalldilute":
     c0 *= 10
     dc0 *= 10
 # timescale_across_plate = 30 / U0
@@ -122,18 +122,18 @@ kS1 = 1/300 # now we do not use S really. temporarily kept here for interface le
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
 print("N=",N_particles, ", DR=",DR, ", kH2=",kH2,", kT2=", kT2,", kklino=", kklino,", runtime=",runtime)
 
-if plate_condition is "large":
+if plate_condition == "large":
     rmax = 40 # 40 mm radius for large dist
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
     c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/large/"
-elif plate_condition is "small":
+elif plate_condition == "small":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/small/"
-elif plate_condition is "smalldilute":
+elif plate_condition == "smalldilute":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
