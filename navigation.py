@@ -72,13 +72,14 @@ DR = float(sys.argv[5])
 if_taxis = (sys.argv[6]=="true")
 if_klinokinesis = (sys.argv[7]=="true")
 if_orthokinesis = (sys.argv[8]=="true")
-if_large = (sys.argv[9]=="true")
+plate_condition = sys.argv[9]
 if_tail = (sys.argv[10]=="true")
 depth = sys.argv[11]
 print("if_taxis=", if_taxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
-print("if_large=", if_large)
+# print("if_large=", if_large)
+print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
@@ -102,6 +103,9 @@ sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
 c0 = 1e-6
 dc0 = 1e-6 / 1 # take this as the typical c change rate
+if plate_condition is "smalldilute":
+    c0 *= 10
+    dc0 *= 10
 # timescale_across_plate = 30 / U0
 # dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
 
@@ -112,17 +116,25 @@ kS1 = 1/300 # now we do not use S really. temporarily kept here for interface le
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
 print("N=",N_particles, ", DR=",DR, ", kH2=",kH2,", kT2=", kT2,", kklino=", kklino,", runtime=",runtime)
 
-if if_large:
+if plate_condition is "large":
     rmax = 40 # 40 mm radius for large dist
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
     c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/large/"
-else:
+elif plate_condition is "small":
+    rmax = 30 # 30 mm radius for dilute
+    X0 = 0
+    c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
+    root_path = "data/small/"
+elif plate_condition is "smalldilute":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/dilute/"
+else:
+    print("wrong plate condition!")
+    exit(1)
 
 root_path += "agar"+str(depth)+"mm/"
 if not os.path.exists(root_path):
