@@ -670,8 +670,8 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, ho
     U1 = m_U1[typ];
     Q0 = m_Q0[typ];
     Qnoised = Q + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
-    // U = U0 + U1 * tanh(Qnoised) / tanh(Q0); 
-    U = U0 + U1 * Qnoised;
+    U = U0 + U1 * tanh(Qnoised-Q0) / tanh(Q0); 
+    // U = U0 + U1 * Qnoised;
     // U = hoomd::NormalDistribution<Scalar>(U/2,U)(rng);
     // U = (U>0.0) ? U : 0.0;
     // U = U0 + U1

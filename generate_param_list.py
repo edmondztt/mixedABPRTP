@@ -10,14 +10,14 @@ runtime = 1800
 kHT20 = 1.0
 # now use the same accumulation rate for H & T
 gamma0_inv = 15
-iftaxis = "true"
+if_head = "true"
 ifkk = "true"
 ifok = "true"
 if_large = "false"
 
 fname = 'parameters.csv'
 with open(fname, 'w') as f:
-    f.write('# N_particles runtime noise_Q kHT2 kklino iftaxis ifkk ifok iflarge depth\n')
+    f.write('# N_particles runtime noise_Q kHT2 kklino if_head ifkk ifok iflarge depth\n')
     for Np in [100, 10000]:
     # for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
@@ -34,14 +34,14 @@ with open(fname, 'w') as f:
                             # for ifok in ["true"]:
                                 for ifkk in ["false","true"]:
                                 # for ifkk in ["true"]:
-                                    # for iftaxis in ["false"]:
-                                    for iftaxis in ["true", "false"]:
+                                    # for if_head in ["false"]:
+                                    for if_head in ["true", "false"]:
                                         # for depth in ["8.5"]:
                                         for depth in ["8.5", "8.9"]:
-                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{iftaxis},{ifkk},{ifok},{if_large},{iftail},{depth}".format(
+                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{if_large},{iftail},{depth}".format(
                                                 Np=Np,runtime=runtime,
                                                 noise_Q=noise_Q,kHT2=kHT2, DR=DR,
-                                                iftaxis=iftaxis,ifkk=ifkk,ifok=ifok,
+                                                if_head=if_head,ifkk=ifkk,ifok=ifok,
                                                 if_large=if_large,iftail=iftail,
                                                 depth=depth)
                                             # print(params)

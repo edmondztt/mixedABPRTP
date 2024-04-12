@@ -67,15 +67,15 @@ N_particles = int(N_particles)
 runtime = float(sys.argv[2])
 # Q0 = float(sys.argv[3])
 noise_Q = float(sys.argv[3])
-kH2 = float(sys.argv[4])
+kHT2 = float(sys.argv[4])
 DR = float(sys.argv[5])
-if_taxis = (sys.argv[6]=="true")
+if_head = (sys.argv[6]=="true")
 if_klinokinesis = (sys.argv[7]=="true")
 if_orthokinesis = (sys.argv[8]=="true")
 plate_condition = sys.argv[9]
 if_tail = (sys.argv[10]=="true")
 depth = sys.argv[11]
-print("if_taxis=", if_taxis)
+print("if_head=", if_head)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 # print("if_large=", if_large)
@@ -92,10 +92,16 @@ noise_Q = noise_Q * Q0
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
 kT1 = 1.0/10.0 # go back to long-memory of PHD: no need
 if if_tail:
-    kT2 = kH2
+    kT2 = kHT2
 else:
     kT2 = 0.0
+
 kH1 = 1.0/10.0
+if if_head:
+    kH2 = kHT2
+else:
+    kH2 = 0.0
+
 U0 = 0.064
 U1 = 0.03
 # sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
@@ -149,12 +155,12 @@ if if_orthokinesis:
     path += "ok_"
 else:
     path += "or_"
-if if_taxis:
-    path += "taxis_"
-else:
-    path += "notaxis_"
+# if if_head:
+#     path += "taxis_"
+if not if_head:
+    path += "nohead_"
 if not if_tail:
-    path += "headonly_"
+    path += "notail_"
 
 
 gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.2f}_depth{5}mm.gsd".format(N_particles, runtime, kH2, noise_Q, DR,depth)
@@ -232,7 +238,7 @@ mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2, kH1=kH1, kH2=kH2,
 if not if_klinokinesis:
     sigma_tumble = -1 # < 0 means no kinesis only random turning with unform angle distribution
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
-    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=if_taxis)
+    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=if_head)
 simulation.operations += rotational_diffusion_tumble_updater
 integrator.forces.append(mixed_active)
 
