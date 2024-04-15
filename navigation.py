@@ -162,7 +162,7 @@ if not if_tail:
     path += "notail_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.2f}_depth{5}mm.gsd".format(N_particles, runtime, kH2, noise_Q, DR,depth)
+gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.2f}_depth{5}mm.gsd".format(N_particles, runtime, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
