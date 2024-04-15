@@ -34,7 +34,6 @@ with open(fname, 'w') as f:
                             for iftail in ["true","false"]:
                             # for ifok in ["false","true"]:
                             # for ifok in ["true"]:
-                                #for ifkk in ["false","true"]:
                                 for ifkk in ["true"]:
                                     # for if_head in ["false"]:
                                     for if_head in ["true", "false"]:
