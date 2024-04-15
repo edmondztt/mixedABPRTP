@@ -26,7 +26,7 @@ with open(fname, 'w') as f:
         for noise_Q in [0.1, 1.0]:
         # for noise_Q in [0.1, 0.5, 1.0]:
             for k2factor in np.array([0.2, 1.0, 5.0]):
-                    kHT2 = kHT20 * k2factor
+#                    kHT2 = kHT20 * k2factor
                     # for kklino in [1.0]:
                     for DR in [1/10]:
                         # for if_large in ["false", "true"]:
@@ -42,7 +42,7 @@ with open(fname, 'w') as f:
                                         # for depth in ["8.5", "8.9"]:
                                             params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{plate_condition},{iftail},{depth}".format(
                                                 Np=Np,runtime=runtime,
-                                                noise_Q=noise_Q,kHT2=kHT2, DR=DR,
+                                                noise_Q=noise_Q,kHT2=k2factor, DR=DR,
                                                 if_head=if_head,ifkk=ifkk,ifok=ifok,
                                                 plate_condition=plate_condition,iftail=iftail,
                                                 depth=depth)

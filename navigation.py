@@ -83,6 +83,7 @@ print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
+kHT20 = 1/300.0
 kklino=1.0
 Q0 = 1.0
 gamma0_inv = 15
@@ -216,7 +217,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
                     is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2, kH1=kH1, kH2=kH2,
+mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2*kHT20, kH1=kH1, kH2=kH2*kHT20,
         kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, kklino=kklino, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
         c0_PHD=c0, dc0=dc0, sigma_QH=sigma_QH, sigma_QT=sigma_QT)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
