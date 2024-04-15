@@ -575,10 +575,10 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             theta0 = atan2(sinq,cosq)*2.0;
             // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
             // if(iftaxis && tmpQ1>0.5*m_Q0[typ] && tmpQ>3*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
-            if(iftaxis && tmpQ1>1.5*m_Q0[typ] && h_tumble_rate.data[idx].z<=0){
+            if(iftaxis && tmpQ1>0.5*m_Q0[typ] && h_tumble_rate.data[idx].z<=0){
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 // Scalar frac_taxis = (tanh(tmpQ-5*m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
-                Scalar frac_taxis = (tanh(10*(tmpQ1-1.8*m_Q0[typ]))+1)/3; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = (tanh(5*(tmpQ1-1.0*m_Q0[typ]))+1)/3; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                 if(frac_taxis>rv){
                     Scalar3 cgrad = compute_c_grad(pos, timestep);
@@ -654,15 +654,21 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
     } 
 
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
+    
     return c_term;
 }
 
-void MixedActiveForceCompute::update_S(Scalar &S, Scalar Q, unsigned int typ){
-    Scalar k1, k2;
-    k1 = m_kS1[typ];
-    k2 = m_kS2[typ];
-    S -= m_deltaT*(k1 * S + k2*(Q-0.3));
-}
+// void MixedActiveForceCompute::update_S(Scalar &S, Scalar c_term, Scalar4 q, unsigned int typ){
+//     Scalar k1, k2;
+//     k1 = m_kS1[typ];
+//     k2 = m_kS2[typ];
+//     // S -= m_deltaT*(k1 * S + k2*(Q-0.3));
+//     Scalar cosq, sinq, theta0;
+//     cosq = q.x;
+//     sinq = q.w;
+//     theta0 = atan2(sinq,cosq)*2.0;
+//     S += m_deltaT * 
+// }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar U0, U1, Q0, Qnoised;
@@ -670,7 +676,7 @@ void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, ho
     U1 = m_U1[typ];
     Q0 = m_Q0[typ];
     Qnoised = Q + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
-    U = U0 + U1 * tanh(Qnoised) / tanh(Q0); 
+    U = U0 + U1 * (Qnoised) / (Q0); 
     // U = U0 + U1 * Qnoised;
     // U = hoomd::NormalDistribution<Scalar>(U/2,U)(rng);
     // U = (U>0.0) ? U : 0.0;
