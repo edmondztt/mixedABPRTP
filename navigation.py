@@ -85,7 +85,7 @@ print("depth=", depth)
 
 
 runtime = 1800
-kklino=1.0
+kklino=1.5
 Q0 = 1.0
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
@@ -163,7 +163,7 @@ if not if_tail:
     path += "notail_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_kHT1{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, kHT1, kHT2, noise_Q, DR,depth)
+gsd_filename = path + "N{0}_tauHT1{2:.1f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, tauHT1, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
