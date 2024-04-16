@@ -6,7 +6,7 @@ import numpy as np
 Np = int(100)
 runtime = 1800
 # Q0 = 1.0
-tauHT1 = 60
+tauHT1 = 180
 # now use the same accumulation rate for H & T
 gamma0_inv = 15
 if_head = "true"
@@ -25,7 +25,7 @@ with open(fname, 'w') as f:
         for noise_Q in [0.1, 1.0]:
         # for noise_Q in [0.1, 0.5, 1.0]:
             # for k2factor in np.array([ 1.0, 2.0, 5.0]):
-            for k2factor in np.array([ 2.0, 5.0]):
+            for k2factor in np.array([ 1.0, 5.0]):
             # for k2factor in np.array([0.2, 1.0, 5.0]):
 #                    kHT2 = kHT20 * k2factor
                     # for kklino in [1.0]:
