@@ -579,7 +579,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             if(iftaxis && tmpQ1>0.5*m_Q0[typ] && h_tumble_rate.data[idx].z<=0){
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 // Scalar frac_taxis = (tanh(tmpQ-5*m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
-                Scalar frac_taxis = tmplogc*(tanh((tmpQ1-0.5*m_Q0[typ]))+1)/3; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = tmplogc*(tanh((tmpQ1-0.5*m_Q0[typ]))+1)/2; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                 if(frac_taxis>rv){
                     Scalar3 cgrad = compute_c_grad(pos, timestep);
