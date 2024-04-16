@@ -564,21 +564,22 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
         timestep,m_sysdef->getSeed()),hoomd::Counter(ptag));
         // now tmpQ = QH / QT
         tmpQ = h_QS.data[idx].x / h_QS.data[idx].y; // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
-        tmpQ1 = h_QS.data[idx].x - h_QS.data[idx].y;
+        tmpQ1 = h_QS.data[idx].x + h_QS.data[idx].y;
         pos = h_pos.data[idx];
 
         if (m_sysdef->getNDimensions() == 2) // 2D
         {
-            Scalar theta_turn, cosq, sinq, theta0;
+            Scalar theta_turn, cosq, sinq, theta0, tmplogc;
             cosq = h_orientation.data[idx].x;
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
+            tmplogc = log2(h_QS.data[idx].w/m_c0_PHD[typ]/10); // 0 for c=10 c0. 1 for c=20 c0
             // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
             // if(iftaxis && tmpQ1>0.5*m_Q0[typ] && tmpQ>3*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
             if(iftaxis && tmpQ1>0.5*m_Q0[typ] && h_tumble_rate.data[idx].z<=0){
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 // Scalar frac_taxis = (tanh(tmpQ-5*m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
-                Scalar frac_taxis = (tanh(5*(tmpQ1-1.0*m_Q0[typ]))+1)/3; // linear prob mixture of taxis angle and the tumble angle.
+                Scalar frac_taxis = tmplogc*(tanh((tmpQ1-0.5*m_Q0[typ]))+1)/3; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
                 if(frac_taxis>rv){
                     Scalar3 cgrad = compute_c_grad(pos, timestep);
