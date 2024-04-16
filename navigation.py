@@ -64,7 +64,7 @@ sigma_tumble = 0.2*np.pi
 
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
-runtime = float(sys.argv[2])
+tauHT1 = float(sys.argv[2]) # 1/300?
 # Q0 = float(sys.argv[3])
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
@@ -83,7 +83,8 @@ print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
-kHT20 = 1/300.0
+
+runtime = 1800
 kklino=1.0
 Q0 = 1.0
 gamma0_inv = 15
@@ -91,7 +92,7 @@ gamma0 = 1 / gamma0_inv
 noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
-kT1 = kH1 = 1.0/300.0 # go back to long-memory of both H & T
+kHT1 = kH1 = kT1 = kHT20 = 1.0/tauHT1 # go back to long-memory of both H & T
 if if_tail:
     kT2 = kHT2
 else:
@@ -162,7 +163,7 @@ if not if_tail:
     path += "notail_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.2f}_depth{5}mm.gsd".format(N_particles, runtime, kHT2, noise_Q, DR,depth)
+gsd_filename = path + "N{0}_runtime{1}_kHT1{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, kHT1, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 

@@ -6,8 +6,7 @@ import numpy as np
 Np = int(100)
 runtime = 1800
 # Q0 = 1.0
-# sensory suppose to be faster than memory decay time
-kHT20 = 1.0/300
+tauHT1 = 100
 # now use the same accumulation rate for H & T
 gamma0_inv = 15
 if_head = "true"
@@ -17,9 +16,9 @@ if_large = "false"
 
 fname = 'parameters.csv'
 with open('logfinished.csv', 'w') as f:
-    f.write('N_particles runtime noise_Q kHT2 DR if_head ifkk ifok plate_condition iftail depth\n')
+    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head ifkk ifok plate_condition iftail depth\n')
 with open(fname, 'w') as f:
-    f.write('N_particles runtime noise_Q kHT2 DR if_head ifkk ifok plate_condition iftail depth\n')
+    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head ifkk ifok plate_condition iftail depth\n')
     # for Np in [100, 10000]:
     for Np in [100]:
         # for Q0 in [0.5, 1.0, 0.2]:
@@ -39,8 +38,8 @@ with open(fname, 'w') as f:
                                     for if_head in ["true", "false"]:
                                         for depth in ["8.5"]:
                                         # for depth in ["8.5", "8.9"]:
-                                            params = "{Np:d},{runtime:d},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{plate_condition},{iftail},{depth}".format(
-                                                Np=Np,runtime=runtime,
+                                            params = "{Np:d},{tauHT1:.1f},{noise_Q:.2f},{kHT2:.2f},{DR:.2f},{if_head},{ifkk},{ifok},{plate_condition},{iftail},{depth}".format(
+                                                Np=Np,tauHT1=tauHT1,
                                                 noise_Q=noise_Q,kHT2=k2factor, DR=DR,
                                                 if_head=if_head,ifkk=ifkk,ifok=ifok,
                                                 plate_condition=plate_condition,iftail=iftail,
