@@ -576,7 +576,7 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             tmplogc = log2(h_QS.data[idx].w/m_c0_PHD[typ]/10); // 0 for c=10 c0. 1 for c=20 c0
             // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
             // if(iftaxis && tmpQ1>0.5*m_Q0[typ] && tmpQ>3*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
-            if(iftaxis && tmpQ1>0.5*m_Q0[typ] && h_tumble_rate.data[idx].z<=0){
+            if(iftaxis && h_tumble_rate.data[idx].z<=0){
                 // so that the angle to rotate falls in [-2pi, 2pi] 
                 // Scalar frac_taxis = (tanh(tmpQ-5*m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
                 Scalar frac_taxis = tmplogc*(tanh((tmpQ1-0.5*m_Q0[typ]))+1)/2; // linear prob mixture of taxis angle and the tumble angle.
