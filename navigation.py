@@ -64,7 +64,7 @@ sigma_tumble = 0.2*np.pi
 
 N_particles = sys.argv[1]
 N_particles = int(N_particles)
-runtime = float(sys.argv[2])
+tauHT1 = float(sys.argv[2]) # 1/300?
 # Q0 = float(sys.argv[3])
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
@@ -83,6 +83,8 @@ print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
+
+runtime = 1800
 kklino=1.0
 Q0 = 1.0
 gamma0_inv = 15
@@ -90,7 +92,7 @@ gamma0 = 1 / gamma0_inv
 noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
-kT1 = kH1 = 1.0/300.0 # go back to long-memory of both H & T
+kHT1 = kH1 = kT1 = kHT20 = 1.0/tauHT1 # go back to long-memory of both H & T
 if if_tail:
     kT2 = kHT2
 else:
@@ -161,7 +163,7 @@ if not if_tail:
     path += "notail_"
 
 
-gsd_filename = path + "N{0}_runtime{1}_kHT2{2:.2f}_noiseQ{3:.2f}_DR{4:.2f}_depth{5}mm.gsd".format(N_particles, runtime, kH2, noise_Q, DR,depth)
+gsd_filename = path + "N{0}_runtime{1}_kHT1{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, kHT1, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
@@ -216,7 +218,7 @@ mixed_active = hoomd.md.force.MixedActive(filter=hoomd.filter.All(), L=rmax*2,
                     is_klinokinesis=if_klinokinesis, is_orthokinesis=if_orthokinesis)
 mixed_active.mixed_active_force['A'] = (1,0,0)
 mixed_active.active_torque['A'] = (0,0,0)
-mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2, kH1=kH1, kH2=kH2,
+mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2*kHT20, kH1=kH1, kH2=kH2*kHT20,
         kS1 = kS1, kS2 = kS2, Q0=Q0, Q1=Q1, kklino=kklino, noise_Q = noise_Q, U0=U0, U1=U1, gamma0=gamma0, 
         c0_PHD=c0, dc0=dc0, sigma_QH=sigma_QH, sigma_QT=sigma_QT)
 # mixed_active.kT1['A'] = 1.0 / 600 # Q tail decays in 10 min.
