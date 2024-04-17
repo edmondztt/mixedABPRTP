@@ -666,7 +666,8 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
             c_term = 0;
             break;
         }
-        Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
+        // Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
+        Scalar factor_c = 1.0;
         c_term *= factor_c / m_dc0[typ];
         c_term = std::min(c_term, 1.0);
         break;
