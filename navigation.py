@@ -59,7 +59,7 @@ def rand_unit_quaternion(N, threeD=False):
 
 
 dt = 1e-3
-sigma_tumble = 0.2*np.pi
+sigma_tumble = 0.3*np.pi
 # DR = 1/30
 
 N_particles = sys.argv[1]
@@ -104,8 +104,8 @@ else:
 
 U0 = 0.064
 U1 = 0.03
-# sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
-sigma_QT = 2.0
+sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
+# sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
 c0 = 1e-6
 dc0 = 1e-6 / 1 # take this as the typical c change rate

@@ -573,23 +573,6 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
             cosq = h_orientation.data[idx].x;
             sinq = h_orientation.data[idx].w;
             theta0 = atan2(sinq,cosq)*2.0;
-            tmplogc = log2(h_QS.data[idx].w/m_c0_PHD[typ]/10); // 0 for c=10 c0. 1 for c=20 c0
-            // first check if I should do a taxis turn. regardless of my turning rate. tumbling rate only applies to tumbles, not taxis turns.
-            // if(iftaxis && tmpQ1>0.5*m_Q0[typ] && tmpQ>3*m_Q0[typ] && h_tumble_rate.data[idx].z<0){
-            if(iftaxis && h_tumble_rate.data[idx].z<=0){
-                // so that the angle to rotate falls in [-2pi, 2pi] 
-                // Scalar frac_taxis = (tanh(tmpQ-5*m_Q0[typ])+1)/3; // linear prob mixture of taxis angle and the tumble angle.
-                Scalar frac_taxis = (tanh((tmpQ1-0.5*m_Q0[typ]))+1)/2; // linear prob mixture of taxis angle and the tumble angle.
-                // Scalar frac_taxis = (0.5+tmplogc)*(tanh((tmpQ1-0.5*m_Q0[typ]))+1)/2; // linear prob mixture of taxis angle and the tumble angle.
-                Scalar rv = hoomd::UniformDistribution<Scalar>(0, 1)(rng);
-                if(frac_taxis>rv){
-                    Scalar3 cgrad = compute_c_grad(pos, timestep);
-                    Scalar gradx, grady; 
-                    gradx = cgrad.x; grady = cgrad.y;
-                    theta_turn = atan2(grady, gradx);
-                    theta_turn -= theta0;
-                }
-            }
             // have to do tumble regardless of whether taxis!!
             // otherwise the tumbling rate is biased!!
             // now decide whether to tumble at this timestep
@@ -602,8 +585,15 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
                 theta_turn = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
             }
             else{
-                theta_turn = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
-                theta_turn = (theta_turn>M_PI) ? (M_PI - theta_turn) : theta_turn;
+                Scalar tmpfactor_uniform = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
+                if (tmpfactor_uniform>0.5)
+                {
+                    theta_turn = hoomd::NormalDistribution<Scalar>(tumble_angle_gauss_spread, M_PI)(rng);
+                    theta_turn = (theta_turn>M_PI) ? (M_PI - theta_turn) : theta_turn;
+                }
+                else{
+                    theta_turn = hoomd::UniformDistribution<Scalar>(-M_PI, M_PI )(rng);
+                }
             }
             // now theta_tumble is [-pi , pi]
 
@@ -621,8 +611,50 @@ void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, S
     }
 }
 
+void MixedActiveForceCompute::taxis_turn(uint64_t timestep){
+    ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_tumble_rate(m_pdata->getTumbles(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_orientation(m_pdata->getOrientationArray(),
+                                       access_location::host,
+                                       access_mode::readwrite);
+    ArrayHandle<unsigned int> h_tag(m_pdata->getTags(), access_location::host, access_mode::read);
+    ArrayHandle<Scalar4> h_QS(m_pdata->getConfidences(), access_location::host, access_mode::readwrite);
+
+    assert(h_pos.data != NULL);
+    assert(h_orientation.data != NULL);
+    assert(h_tumble_rate.data != NULL);
+    assert(h_tag.data != NULL);
+    assert(h_QS.data != NULL);
+
+    Scalar Ctaxis, c_new, c_old;
+    Scalar time_elapse = m_deltaT * period;
+    Scalar4 pos;
+    unsigned int idx, typ, ptag;
+
+    for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
+        idx = m_group->getMemberIndex(i);
+        typ = __scalar_as_int(h_pos.data[idx].w);
+        ptag = h_tag.data[idx];
+        Ctaxis = 20*m_c0_PHD[typ];
+        if(iftaxis && h_QS.data[idx].w>=Ctaxis && h_tumble_rate.data[idx].z<=0){
+            // assume head sweep can detect the correct direction now because it's very close to the source (QT<0). just turn to the grad c direction.
+            Scalar theta_grad;
+            Scalar3 cgrad = compute_c_grad(pos, timestep);
+            Scalar gradx, grady; 
+            gradx = cgrad.x; grady = cgrad.y;
+            theta_grad = atan2(grady, gradx);
+            vec3<Scalar> rot_axis(0.0, 0.0, 1.0);
+            quat<Scalar> quati = quat<Scalar>::fromAxisAngle(rot_axis, theta_grad);
+            quati = quati * (Scalar(1.0) / slow::sqrt(norm2(quati)));
+            h_orientation.data[idx] = quat_to_scalar4(quati);
+        }
+    }
+}
+
+
 Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, int FLAG_Q, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar k1, k2, c_term;
+    Scalar Cm=5*m_c0_PHD[typ];
 
     switch (FLAG_Q) {
     case m_FLAG_QH: {
@@ -634,29 +666,29 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
             c_term = 0;
             break;
         }
-        // c_term = (c_term>m_dc0[typ]) ? 1.0 : exp(-pow(log(c_term/m_dc0[typ])/m_sigma_QH[typ],2.0));
-        c_term = (c_term>m_dc0[typ]) ? 1.0 : (log10(c_term/m_dc0[typ])+3)/3;
-        c_term = std::max(0.0, c_term); // + hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
-        break;
+        Scalar factor_c = (1+tanh(log(c) - log(Cm)))/2;
+        c_term *= factor_c / m_dc0[typ];
     }
     case m_FLAG_QT: {
         k1 = m_kT1[typ];
         k2 = m_kT2[typ];
-        if(c_new<1e-10){
-            c_term = 0.0;
-            break;
+        // if c_new > Cm: max point at Cm=0.5e-5, 0 at C1=2e-5 => fT=1-Aln^2(c_new/Cm), A=1/ln^2(C1/Cm)
+        // if c_new < Cm: fT=exp(-pow(log(c_term/Cm)/m_sigma_QT[typ],2.0))
+        Scalar A = log(15*m_c0_PHD[typ]/Cm);
+        A = 1/A/A;
+        if (c_new<Cm)
+        {
+            c_term = exp(-pow(log(c_new/Cm)/m_sigma_QT[typ],2.0));
         }
-        // from optogenetic exp: when both H&T stimed, goes forward
-        c_term = 1.0 * exp(-pow(log(c_new/m_c0_PHD[typ])/m_sigma_QT[typ],2.0));
-        break;
+        else{
+            c_term = 1-A*pow(log(c_new/Cm),2.0);
+        }
     }
     default:
         printf("FLAG_Q must be either for QH or QT!\n");
         return -1;
     } 
-
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
-    
     return c_term;
 }
 
@@ -802,6 +834,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
 */
 void MixedActiveForceCompute::computeForces(uint64_t timestep){
     update_dynamical_parameters(timestep);
+    taxis_turn(timestep);
     setForces(); // set forces for particles
 
 #ifdef ENABLE_HIP

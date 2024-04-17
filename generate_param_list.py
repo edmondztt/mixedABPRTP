@@ -29,7 +29,7 @@ with open(fname, 'w') as f:
             # for k2factor in np.array([0.2, 1.0, 5.0]):
 #                    kHT2 = kHT20 * k2factor
                     # for kklino in [1.0]:
-                    for DR in [1/10]:
+                    for DR in [1/50]:
                         # for if_large in ["false", "true"]:
                         # for plate_condition in ["small", "large", "smalldilute"]:
                         # for plate_condition in ["small", "large"]:
