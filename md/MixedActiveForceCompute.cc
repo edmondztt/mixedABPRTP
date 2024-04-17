@@ -660,15 +660,15 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
     case m_FLAG_QH: {
         k1 = m_kH1[typ];
         k2 = m_kH2[typ];
-        c_term = (c_new - c_old)/m_deltaT;
+        c_term = (c_new - c_old)/m_deltaT / m_dc0[typ];
         if(c_term<=0){
             // c_term = hoomd::NormalDistribution<Scalar>(m_noise_Q[typ], 0)(rng);
             c_term = 0;
             break;
         }
-        // Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
-        Scalar factor_c = 1.0;
-        c_term *= factor_c / m_dc0[typ];
+        Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
+        // Scalar factor_c = 1.0;
+        c_term *= factor_c;
         c_term = std::min(c_term, 1.0);
         break;
     }
