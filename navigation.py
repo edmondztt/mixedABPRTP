@@ -83,6 +83,7 @@ print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
+iftaxis = True
 
 runtime = 1800
 kklino=1.5
@@ -238,7 +239,7 @@ mixed_active.params['A'] = dict(kT1=kT1, kT2=kT2*kHT20, kH1=kH1, kH2=kH2*kHT20,
 if not if_klinokinesis:
     sigma_tumble = -1 # < 0 means no kinesis only random turning with unform angle distribution
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
-    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=if_head)
+    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=iftaxis)
 simulation.operations += rotational_diffusion_tumble_updater
 integrator.forces.append(mixed_active)
 

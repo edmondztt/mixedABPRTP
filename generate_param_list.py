@@ -21,19 +21,17 @@ with open(fname, 'w') as f:
     f.write('N_particles tauHT1 noise_Q kHT2 DR if_head ifkk ifok plate_condition iftail depth\n')
     # for Np in [100, 10000]:
     for Np in [100]:
-        # for Q0 in [0.5, 1.0, 0.2]:
-        for noise_Q in [0.1, 1.0]:
-        # for noise_Q in [0.1, 0.5, 1.0]:
-            # for k2factor in np.array([ 1.0, 2.0, 5.0]):
-            for k2factor in np.array([0.1, 1.0, 5.0]):
-            # for k2factor in np.array([0.2, 1.0, 5.0]):
-#                    kHT2 = kHT20 * k2factor
-                    # for kklino in [1.0]:
-                    for DR in [1/50]:
-                        # for if_large in ["false", "true"]:
-                        # for plate_condition in ["small", "large", "smalldilute"]:
-                        # for plate_condition in ["small", "large"]:
-                        for plate_condition in ["small", "large"]:
+        # for plate_condition in ["small", "large", "smalldilute"]:
+        for plate_condition in ["small",]:
+            # for Q0 in [0.5, 1.0, 0.2]:
+            for noise_Q in [0.1, 1.0]:
+            # for noise_Q in [0.1, 0.5, 1.0]:
+                # for k2factor in np.array([ 1.0, 2.0, 5.0]):
+                for k2factor in np.array([0.1, 1.0, 5.0]):
+                # for k2factor in np.array([0.2, 1.0, 5.0]):
+    #                    kHT2 = kHT20 * k2factor
+                        # for kklino in [1.0]:
+                        for DR in [1/50]:
                             for iftail in ["true","false"]:
                             # for ifok in ["false","true"]:
                             # for ifok in ["true"]:

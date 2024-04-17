@@ -58,41 +58,62 @@ def rand_unit_quaternion(N, threeD=False):
 
 
 
+
 dt = 1e-3
-sigma_tumble = 0.2*np.pi
-DR = 0
-N_particles = 10
+sigma_tumble = 0.3*np.pi
+# DR = 1/30
+
+N_particles = 100
 N_particles = int(N_particles)
-runtime = 1800
-Q0 = 1.00
-noise_Q = 0.01*Q0
-kHT2 = 1.00
-kklino = 2
-if_taxis = True
+tauHT1 = 60
+# Q0 = float(sys.argv[3])
+noise_Q = 0.1
+kHT2 = 0.1
+DR = 0.02
+if_head = True
 if_klinokinesis = True
 if_orthokinesis = True
-if_large = False
+plate_condition = "small"
+if_tail = True
 depth = 8.5
-print("if_taxis=", if_taxis)
+print("if_head=", if_head)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
-print("if_large=", if_large)
+# print("if_large=", if_large)
+print("plate condition = ", plate_condition)
+print("if tail = ",if_tail)
 print("depth=", depth)
 
+iftaxis = True
+
+runtime = 1800
+kklino=1.5
+Q0 = 1.0
 gamma0_inv = 15
 gamma0 = 1 / gamma0_inv
-
+noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
-kT1 = 1.0/10.0
-kH1 = 1.0/10.0
+kHT1 = kH1 = kT1 = kHT20 = 1.0/tauHT1 # go back to long-memory of both H & T
+if if_tail:
+    kT2 = kHT2
+else:
+    kT2 = 0.0
+if if_head:
+    kH2 = kHT2
+else:
+    kH2 = 0.0
+
 U0 = 0.064
 U1 = 0.03
-# sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
-sigma_QT = 2.0
-sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor
+sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
+# sigma_QT = 2.0
+sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
 c0 = 1e-6
 dc0 = 1e-6 / 1 # take this as the typical c change rate
+if plate_condition == "smalldilute":
+    c0 *= 10
+    dc0 *= 10
 # timescale_across_plate = 30 / U0
 # dc0 = 1e-5 / timescale_across_plate # typical large concentration increase rate ~ 2e-8. above this QH stim term will saturate
 
@@ -101,19 +122,27 @@ L0 = 6 # initial spread since stimulation starts at 5 min = 300 s.
 Q1 = 1.0 # now we do not use Q1 really. temporarily kept here for interface legacy
 kS1 = 1/300 # now we do not use S really. temporarily kept here for interface legacy
 kS2 = 0.0 # now we do not use S really. temporarily kept here for interface legacy
-print("N=",N_particles, ", Q0=",Q0, ", kH2=kT2=",kHT2,", runtime=",runtime)
+print("N=",N_particles, ", DR=",DR, ", kH2=",kH2,", kT2=", kT2,", kklino=", kklino,", runtime=",runtime)
 
-if if_large:
+if plate_condition == "large":
     rmax = 40 # 40 mm radius for large dist
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
     c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/large/"
-else:
+elif plate_condition == "small":
+    rmax = 30 # 30 mm radius for dilute
+    X0 = 0
+    c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
+    root_path = "data/small/"
+elif plate_condition == "smalldilute":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/dilute/"
+else:
+    print("wrong plate condition!")
+    exit(1)
 
 root_path += "agar"+str(depth)+"mm/"
 if not os.path.exists(root_path):
@@ -128,60 +157,27 @@ if if_orthokinesis:
     path += "ok_"
 else:
     path += "or_"
-if if_taxis:
-    path += "taxis_"
-else:
-    path += "notaxis_"
+# if if_head:
+#     path += "taxis_"
+if not if_head:
+    path += "nohead_"
+if not if_tail:
+    path += "notail_"
 
 
-gsd_filename = "testN{0}_runtime{1}_Q0{2:.2f}_kHT2{3:.2f}_noiseQ{4:.2f}_kklino{5:.1f}_depth{6}mm.gsd".format(N_particles, runtime, Q0, kHT2, noise_Q, kklino, depth)
+gsd_filename = path + "N{0}_tauHT1{2:.1f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, tauHT1, kHT2, noise_Q, DR,depth)
 print("gsd fname = ", gsd_filename)
 fname_init = 'init.gsd'
 
 cpu = hoomd.device.CPU()
 simulation = hoomd.Simulation(device=cpu, seed=1)
 
-
-flag_continue = False
-if(not os.path.exists(gsd_filename)):
-    flag_continue = False
-    print(gsd_filename, " does not exist. try ", fname_init)
-    if(not os.path.exists(fname_init)):
-        print(fname_init, " does not exist. creating new config.")
-        L = 2*rmax+1.0
-        print('L=',L)
-        X = L0*(np.random.rand(N_particles)-0.5)+X0
-        Y = L0*(np.random.rand(N_particles)-0.5)
-        Z = np.zeros_like(X)
-        # X = np.array([2.3])
-        # Y = np.array([25])
-        # Z = np.zeros_like(X)
-        position = np.stack((X,Y,Z),axis=-1)
-        print(position)
-        frame = gsd.hoomd.Frame()
-        frame.particles.N = N_particles
-        frame.particles.position = position[0:N_particles]
-        print(np.shape(frame.particles.position))
-        frame.particles.typeid = [0] * N_particles
-        frame.configuration.box = [L, L, 0, 0, 0, 0]
-        frame.particles.types = ['A']
-        theta = np.pi/3
-        frame.particles.orientation = rand_unit_quaternion(N_particles)
-        # frame.particles.orientation = [np.cos(theta/2), 0, 0, np.sin(theta/2)]
-        print("created {N:d} particles".format(N=len(frame.particles.position)))
-        # simulation.timestep = 1459800
-        simulation.create_state_from_snapshot(frame)
-    else:
-        simulation.create_state_from_gsd(
-            filename=fname_init
-        )
-else:
-    flag_continue = True
-    print("continue run from ", gsd_filename)
-    simulation.create_state_from_gsd(
-        filename=gsd_filename,
-        frame=14598
-    )
+flag_continue = True
+print("continue run from ", gsd_filename)
+simulation.create_state_from_gsd(
+    filename=gsd_filename,
+    frame=3000
+)
 
 integrator = hoomd.md.Integrator(dt=dt)
 
@@ -218,7 +214,7 @@ mixed_active.params['A'] = dict(kT1=kT1, kT2=kHT2, kH1=kH1, kH2=kHT2,
 if not if_klinokinesis:
     sigma_tumble = -1 # < 0 means no kinesis only random turning with unform angle distribution
 rotational_diffusion_tumble_updater = mixed_active.create_diffusion_tumble_updater(
-    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=if_taxis)
+    trigger=10, rotational_diffusion=DR, tumble_angle_gauss_spread=sigma_tumble, iftaxis=iftaxis)
 simulation.operations += rotational_diffusion_tumble_updater
 integrator.forces.append(mixed_active)
 
