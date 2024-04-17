@@ -7,17 +7,17 @@ JOB_COUNT=0
 
 python_script="navigation.py"
 
-while IFS=, read -r Np tauHT1 noise_Q kHT2 DR iftaxis ifkk ifok plate_condition iftail depth
+while IFS=, read -r Np tauHT1 noise_Q kHT2 DR ifhead ifkk ifok plate_condition iftail iftaxis depth
 do
-    echo "Running ${python_script} with parameters: $Np $tauHT1 $noise_Q $kHT2 $DR $iftaxis $ifkk $ifok $plate_condition $iftail $depth"
+    echo "Running ${python_script} with parameters: $Np $tauHT1 $noise_Q $kHT2 $DR $ifhead $iftaxis $ifkk $ifok $plate_condition $iftail $depth"
 
     source /home/wanxuan/venvpheromone/bin/activate
     # Run the Python script with parameters
-    logname="log${Np}-${tauHT1}-${noise_Q}-${kHT2}-${DR}-${iftaxis}-${ifkk}-${ifok}-${plate_condition}-${iftail}-${depth}"
+    logname="log${Np}-${tauHT1}-${noise_Q}-${kHT2}-${DR}-${ifhead}-${iftaxis}-${ifkk}-${ifok}-${plate_condition}-${iftail}-${depth}"
     echo "logname is ${logname}"
-    nohup python -u "$python_script" "$Np" "$tauHT1" "$noise_Q" "$kHT2" "$DR" "$iftaxis" "$ifkk" "$ifok" "$plate_condition" "$iftail" "$depth" > ${logname} &
+    nohup python -u "$python_script" "$Np" "$tauHT1" "$noise_Q" "$kHT2" "$DR" "$ifhead" "$iftaxis" "$ifkk" "$ifok" "$plate_condition" "$iftail" "$depth" > ${logname} &
     
-    echo "$Np" "$tauHT1" "$noise_Q" "$kHT2" "$DR" "$iftaxis" "$ifkk" "$ifok" "$plate_condition" "$iftail" "$depth" >> logcurrentrunning
+    echo "$Np" "$tauHT1" "$noise_Q" "$kHT2" "$DR" "$ifhead" "$iftaxis" "$ifkk" "$ifok" "$plate_condition" "$iftail" "$depth" >> logcurrentrunning
     ((JOB_COUNT++))
     if [ "$JOB_COUNT" -ge $MAX_JOBS ]; then
         echo "wait for current batch of $JOB_COUNT jobs to finish"

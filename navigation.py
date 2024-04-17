@@ -70,11 +70,12 @@ noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
 DR = float(sys.argv[5])
 if_head = (sys.argv[6]=="true")
-if_klinokinesis = (sys.argv[7]=="true")
-if_orthokinesis = (sys.argv[8]=="true")
-plate_condition = sys.argv[9]
-if_tail = (sys.argv[10]=="true")
-depth = sys.argv[11]
+iftaxis = sys.argv[7]=="true"
+if_klinokinesis = (sys.argv[8]=="true")
+if_orthokinesis = (sys.argv[9]=="true")
+plate_condition = sys.argv[10]
+if_tail = (sys.argv[11]=="true")
+depth = sys.argv[12]
 print("if_head=", if_head)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
@@ -82,8 +83,6 @@ print("if_orthokinesis=", if_orthokinesis)
 print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
-
-iftaxis = True
 
 runtime = 1800
 kklino=1.5

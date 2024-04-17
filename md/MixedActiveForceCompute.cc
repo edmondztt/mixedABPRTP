@@ -792,6 +792,7 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
         h_tumble_rate.data[idx].w = cterm;
         QT = QT > m_Q0[typ] ? m_Q0[typ] : QT; // let tail confidence saturate at Q0. 
         QH = QH > 2*m_Q0[typ] ? 2*m_Q0[typ] : QH; // QH saturate at 2QT
+        QT = QT < -m_Q0[typ] ? -m_Q0[typ] : QT;
         
         // update_S(S, QH + QT, typ);
         
