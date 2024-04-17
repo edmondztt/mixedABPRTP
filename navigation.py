@@ -133,9 +133,9 @@ if plate_condition == "large":
     root_path = "data/large/"
 elif plate_condition == "small":
     rmax = 30 # 30 mm radius for dilute
-    X0 = 0
+    X0 = 10
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data/small/"
+    root_path = "data/small-2.5/"
 elif plate_condition == "smalldilute":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
