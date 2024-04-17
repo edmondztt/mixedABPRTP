@@ -633,7 +633,8 @@ void MixedActiveForceCompute::taxis_turn(uint64_t timestep){
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
         idx = m_group->getMemberIndex(i);
-        typ = __scalar_as_int(h_pos.data[idx].w);
+        pos = h_pos.data[idx];
+        typ = __scalar_as_int(pos.w);
         ptag = h_tag.data[idx];
         if(h_QS.data[idx].w>=Ctaxis && h_tumble_rate.data[idx].z<=0){
             // assume head sweep can detect the correct direction now because it's very close to the source (QT<0). just turn to the grad c direction.
@@ -694,17 +695,6 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
     return c_term;
 }
 
-// void MixedActiveForceCompute::update_S(Scalar &S, Scalar c_term, Scalar4 q, unsigned int typ){
-//     Scalar k1, k2;
-//     k1 = m_kS1[typ];
-//     k2 = m_kS2[typ];
-//     // S -= m_deltaT*(k1 * S + k2*(Q-0.3));
-//     Scalar cosq, sinq, theta0;
-//     cosq = q.x;
-//     sinq = q.w;
-//     theta0 = atan2(sinq,cosq)*2.0;
-//     S += m_deltaT * 
-// }
 
 void MixedActiveForceCompute::update_U(Scalar &U, Scalar Q, unsigned int typ, hoomd::RandomGenerator rng){
     Scalar U0, U1, Q0, Qnoised;
