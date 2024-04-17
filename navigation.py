@@ -94,13 +94,14 @@ noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
 kHT1 = kT1 = kHT20 = 1.0/tauHT1 # go back to long-memory of both H & T
-kH1 = 10*kHT1 # head faster dynamics
+HT_timescale_factor = 10
+kH1 = kHT1*HT_timescale_factor # head faster dynamics
 if if_tail:
     kT2 = kHT2
 else:
     kT2 = 0.0
 if if_head:
-    kH2 = kHT2
+    kH2 = kHT2*HT_timescale_factor
 else:
     kH2 = 0.0
 
