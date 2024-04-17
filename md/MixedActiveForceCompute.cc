@@ -668,6 +668,7 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
         c_term *= factor_c / m_dc0[typ];
         c_term = std::min(c_term, 1.0);
+        break;
     }
     case m_FLAG_QT: {
         k1 = m_kT1[typ];
@@ -683,9 +684,10 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
         else{
             c_term = 1-A*pow(log(c_new/Cm),2.0);
         }
+        break;
     }
     default:
-        printf("FLAG_Q must be either for QH or QT!\n");
+        printf("FLAG_Q must be either for QH=%d or QT=%d! got %d\n", m_FLAG_QH, m_FLAG_QT, FLAG_Q);
         return -1;
     } 
     Q += m_deltaT * ((-k1) * Q + k2 * c_term);
