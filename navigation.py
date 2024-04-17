@@ -94,7 +94,7 @@ noise_Q = noise_Q * Q0
 # both head and tail memory timescale is measured by their effects on AVA motor.
 # the AVA activity seems to correlate strongly with single sensory neuron in real time, so we take both head and tail confidence to be 10s memory. head timescale from Bargmann 2015 Fig.2B
 kHT1 = kT1 = kHT20 = 1.0/tauHT1 # go back to long-memory of both H & T
-HT_timescale_factor = 60
+HT_timescale_factor = 1
 kH1 = kHT1*HT_timescale_factor # head faster dynamics
 if if_tail:
     kT2 = kHT2
@@ -111,7 +111,7 @@ sigma_QT = 1.5 # from titration data: let's say 1x there is O(0.1) factor
 # sigma_QT = 2.0
 sigma_QH = 6.0 # from Fig.2E of Bargmann 2015: 1000x dilution result in 0.25 factor. not using now
 c0 = 1e-6
-dc0 = 1e-6 / 1 # take this as the typical c change rate
+dc0 = 1e-6 / 200 # take this as the typical c change rate
 if plate_condition == "smalldilute":
     c0 *= 10
     dc0 *= 10
@@ -133,7 +133,7 @@ if plate_condition == "large":
     root_path = "data/large/"
 elif plate_condition == "small":
     rmax = 30 # 30 mm radius for dilute
-    X0 = 10
+    X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
     root_path = "data/small-2.5/"
 elif plate_condition == "smalldilute":

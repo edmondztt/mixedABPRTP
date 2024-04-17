@@ -22,7 +22,7 @@ with open(fname, 'w') as f:
     # for Np in [100, 10000]:
     for Np in [100]:
         # for plate_condition in ["small", "large", "smalldilute"]:
-        for plate_condition in ["small",]:
+        for plate_condition in ["small","smalldilute"]:
             # for Q0 in [0.5, 1.0, 0.2]:
             for noise_Q in [0.1, 1.0]:
             # for noise_Q in [0.1, 0.5, 1.0]:
