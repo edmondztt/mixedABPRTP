@@ -442,10 +442,11 @@ class PYBIND11_EXPORT MixedActiveForceCompute : public ForceCompute{
     //! whether should tumble now
     bool should_tumble(Scalar tumble_rate, Scalar time_elapse, hoomd::RandomGenerator rng);
     //! tumble +- taxis
-    virtual void general_turn(uint64_t period, uint64_t timestep, Scalar tumble_angle_gauss_spread, bool iftaxis); // tumble_angle_gauss_spread<0 for no klino
+    virtual void general_turn(uint64_t period, uint64_t timestep, Scalar tumble_angle_gauss_spread); // tumble_angle_gauss_spread<0 for no klino
     
     //! update the speed and tumble rate
     virtual void update_dynamical_parameters(uint64_t timestep);
+    virtual void taxis_turn(uint64_t timestep);
 
     Scalar update_Q(Scalar &Q, Scalar c_new, Scalar c_old, int FLAG_Q, unsigned int typ, hoomd::RandomGenerator rng);
     void update_S(Scalar &S, Scalar Q, unsigned int typ);

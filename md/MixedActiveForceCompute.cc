@@ -532,7 +532,7 @@ bool MixedActiveForceCompute::should_tumble(Scalar tumble_rate, Scalar time_elap
     return timeForNextEvent <= time_elapse;
 }
 
-void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, Scalar tumble_angle_gauss_spread, bool iftaxis){
+void MixedActiveForceCompute::general_turn(uint64_t period, uint64_t timestep, Scalar tumble_angle_gauss_spread){
     // if tumble_angle_gauss_spread<0 no klino kinesis
     //  array handles
     ArrayHandle<Scalar4> h_pos(m_pdata->getPositions(), access_location::host, access_mode::read);
@@ -626,17 +626,16 @@ void MixedActiveForceCompute::taxis_turn(uint64_t timestep){
     assert(h_tag.data != NULL);
     assert(h_QS.data != NULL);
 
-    Scalar Ctaxis, c_new, c_old;
-    Scalar time_elapse = m_deltaT * period;
+    Scalar Ctaxis;
     Scalar4 pos;
     unsigned int idx, typ, ptag;
+    Ctaxis = 20*m_c0_PHD[0];
 
     for (unsigned int i = 0; i < m_group->getNumMembers(); i++){
         idx = m_group->getMemberIndex(i);
         typ = __scalar_as_int(h_pos.data[idx].w);
         ptag = h_tag.data[idx];
-        Ctaxis = 20*m_c0_PHD[typ];
-        if(iftaxis && h_QS.data[idx].w>=Ctaxis && h_tumble_rate.data[idx].z<=0){
+        if(h_QS.data[idx].w>=Ctaxis && h_tumble_rate.data[idx].z<=0){
             // assume head sweep can detect the correct direction now because it's very close to the source (QT<0). just turn to the grad c direction.
             Scalar theta_grad;
             Scalar3 cgrad = compute_c_grad(pos, timestep);
@@ -666,8 +665,9 @@ Scalar MixedActiveForceCompute::update_Q(Scalar &Q, Scalar c_old, Scalar c_new, 
             c_term = 0;
             break;
         }
-        Scalar factor_c = (1+tanh(log(c) - log(Cm)))/2;
+        Scalar factor_c = (1+tanh(log(c_new) - log(Cm)))/2;
         c_term *= factor_c / m_dc0[typ];
+        c_term = std::min(c_term, 1.0);
     }
     case m_FLAG_QT: {
         k1 = m_kT1[typ];
@@ -834,7 +834,6 @@ void MixedActiveForceCompute::update_dynamical_parameters(uint64_t timestep){
 */
 void MixedActiveForceCompute::computeForces(uint64_t timestep){
     update_dynamical_parameters(timestep);
-    taxis_turn(timestep);
     setForces(); // set forces for particles
 
 #ifdef ENABLE_HIP
