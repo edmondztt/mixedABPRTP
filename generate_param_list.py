@@ -19,11 +19,11 @@ ifok = "true"
 fname = 'parameters.csv'
 # fname = 'tmp.csv'
 with open('logfinished.csv', 'w') as f:
-    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head iftail iftaxis ifkk ifok plate_condition  depth\n')
+    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head iftail iftaxis ifkk ifok plate_condition depth\n')
 with open(fname, 'w') as f:
-    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head iftail iftaxis ifkk ifok plate_condition  depth\n')
-    for Np in [100, 10000]:
-    # for Np in [10000]:
+    f.write('N_particles tauHT1 noise_Q kHT2 DR if_head iftail iftaxis ifkk ifok plate_condition depth\n')
+    # for Np in [100, 10000]:
+    for Np in [10000]:
         # for plate_condition in ["small", "large", "smalldilute"]:
         for plate_condition in ["small",]:
             for if_head in ["true", "false"]:
