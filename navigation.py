@@ -69,19 +69,22 @@ tauHT1 = float(sys.argv[2]) # 1/300?
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
 DR = float(sys.argv[5])
+
 if_head = (sys.argv[6]=="true")
-iftaxis = sys.argv[7]=="true"
-if_klinokinesis = (sys.argv[8]=="true")
-if_orthokinesis = (sys.argv[9]=="true")
-plate_condition = sys.argv[10]
-if_tail = (sys.argv[11]=="true")
+if_tail = (sys.argv[7]=="true")
+iftaxis = sys.argv[8]=="true"
+if_klinokinesis = (sys.argv[9]=="true")
+if_orthokinesis = (sys.argv[10]=="true")
+
+plate_condition = sys.argv[11]
 depth = sys.argv[12]
 print("if_head=", if_head)
+print("if tail = ",if_tail)
+print("if taxis = ",iftaxis)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
 # print("if_large=", if_large)
 print("plate condition = ", plate_condition)
-print("if tail = ",if_tail)
 print("depth=", depth)
 
 runtime = 1800
@@ -147,6 +150,16 @@ if not os.path.exists(root_path):
     os.makedirs(root_path, exist_ok=True)
 
 path = root_path
+if if_head:
+    path += "head_"
+else:
+    path += "nohead_"
+if if_tail:
+    path += "tail_"
+else:
+    path += "notail_"
+if iftaxis:
+    path += "taxis_"
 if if_klinokinesis:
     path += "kk_"
 else:
@@ -155,12 +168,6 @@ if if_orthokinesis:
     path += "ok_"
 else:
     path += "or_"
-# if if_head:
-#     path += "taxis_"
-if not if_head:
-    path += "nohead_"
-if not if_tail:
-    path += "notail_"
 
 
 gsd_filename = path + "N{0}_tauHT1{2:.1f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, tauHT1, kHT2, noise_Q, DR,depth)
@@ -261,7 +268,7 @@ simulation.operations.writers.append(
     )
 )
 
-gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(100),
+gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1000),
                 filename=gsd_filename,
                 dynamic=['property','momentum'])
 simulation.operations.writers.append(gsd_writer)
