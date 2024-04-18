@@ -69,12 +69,15 @@ tauHT1 = float(sys.argv[2]) # 1/300?
 noise_Q = float(sys.argv[3])
 kHT2 = float(sys.argv[4])
 DR = float(sys.argv[5])
+
 if_head = (sys.argv[6]=="true")
-if_klinokinesis = (sys.argv[7]=="true")
-if_orthokinesis = (sys.argv[8]=="true")
-plate_condition = sys.argv[9]
-if_tail = (sys.argv[10]=="true")
-depth = sys.argv[11]
+if_tail = (sys.argv[7]=="true")
+iftaxis = sys.argv[8]=="true"
+if_klinokinesis = (sys.argv[9]=="true")
+if_orthokinesis = (sys.argv[10]=="true")
+
+plate_condition = sys.argv[11]
+depth = sys.argv[12]
 print("if_head=", if_head)
 print("if_klinokinesis=", if_klinokinesis)
 print("if_orthokinesis=", if_orthokinesis)
@@ -83,7 +86,7 @@ print("plate condition = ", plate_condition)
 print("if tail = ",if_tail)
 print("depth=", depth)
 
-iftaxis = True
+# iftaxis = True
 
 runtime = 1800
 kklino=1.0
@@ -130,17 +133,17 @@ if plate_condition == "large":
     # X0 = 25 # for large dist symm setting case 2
     X0 = 0
     c_filename = "mylarge_dist_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data/large/"
+    root_path = "data-production2/large/"
 elif plate_condition == "small":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data/small-2.5/"
+    root_path = "data-production2/small/"
 elif plate_condition == "smalldilute":
     rmax = 30 # 30 mm radius for dilute
     X0 = 0
     c_filename = "mydilute_c_crosssection_agar"+str(depth)+"mm_30min.txt"
-    root_path = "data/dilute/"
+    root_path = "data-production2/dilute/"
 else:
     print("wrong plate condition!")
     exit(1)
@@ -150,6 +153,18 @@ if not os.path.exists(root_path):
     os.makedirs(root_path, exist_ok=True)
 
 path = root_path
+if if_head:
+    path += "head_"
+else:
+    path += "nohead_"
+if if_tail:
+    path += "tail_"
+else:
+    path += "notail_"
+if iftaxis:
+    path += "taxis_"
+else:
+    path += "notaxis_"
 if if_klinokinesis:
     path += "kk_"
 else:
@@ -158,12 +173,7 @@ if if_orthokinesis:
     path += "ok_"
 else:
     path += "or_"
-# if if_head:
-#     path += "taxis_"
-if not if_head:
-    path += "nohead_"
-if not if_tail:
-    path += "notail_"
+
 
 
 gsd_filename = path + "N{0}_tauHT1{2:.1f}_kHT2{3:.2f}_noiseQ{4:.2f}_DR{5:.2f}_depth{6}mm.gsd".format(N_particles, runtime, tauHT1, kHT2, noise_Q, DR,depth)
@@ -264,7 +274,7 @@ simulation.operations.writers.append(
     )
 )
 
-gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(100),
+gsd_writer = hoomd.write.GSD(trigger=hoomd.trigger.Periodic(1000),
                 filename=gsd_filename,
                 dynamic=['property','momentum'])
 simulation.operations.writers.append(gsd_writer)
